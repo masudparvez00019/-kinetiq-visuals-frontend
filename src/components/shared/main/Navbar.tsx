@@ -2,14 +2,21 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { FiMenu, FiX } from "react-icons/fi";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin();
+}
 
 export default function Navbar() {
   const navRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +31,47 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (pathname !== "/") {
+      if (pathname.startsWith("/products")) {
+        setActiveSection("products");
+      } else if (pathname.startsWith("/course")) {
+        setActiveSection("course");
+      } else {
+        setActiveSection("");
+      }
+      return;
+    }
+
+    // Set up section intersection observer for home page scroll tracking
+    const sections = ["hero", "services", "works", "process"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "-45% 0px -45% 0px", // Triggers when the section center reaches viewport center
+      threshold: 0,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      sections.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, [pathname]);
+
   useGSAP(() => {
     // Smooth slide down and fade in for the navbar
     gsap.fromTo(
@@ -36,9 +84,7 @@ export default function Navbar() {
   return (
     <header
       ref={navRef}
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        isScrolled ? "py-6 px-6 md:px-12" : "py-6 px-6 md:px-12"
-      }`}
+      className="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-6 px-6 md:px-12"
     >
       <div
         className={`mx-auto flex items-center justify-between transition-all duration-500 relative z-50 ${
@@ -60,39 +106,57 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Navigation & CTA */}
-        <div className="flex items-center gap-4 md:gap-6">
-          {/* Services outlined button */}
-          <Link
-            href="#services"
-            className="hidden md:block font-satoshi font-bold text-xs md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 md:px-6 md:py-2 rounded-md border border-white/30 text-white hover:bg-white hover:text-black transition-all duration-300 cursor-pointer"
-          >
-            Services
-          </Link>
- 
+        {/* Desktop Navigation & CTA */}
+        <div className="flex items-center">
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-3">
             <Link
-              href="#works"
-              className="font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal text-sky-400 hover:text-sky-300 transition-colors"
+              href="/#services"
+              className={`font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 rounded-md border transition-all duration-300 ${
+                activeSection === "services"
+                  ? "border-white/30 text-white bg-white/5 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              Services
+            </Link>
+            <Link
+              href="/#works"
+              className={`font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 rounded-md border transition-all duration-300 ${
+                activeSection === "works"
+                  ? "border-white/30 text-white bg-white/5 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
             >
               Works
             </Link>
             <Link
-              href="#process"
-              className="font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal text-slate-300 hover:text-white transition-colors"
+              href="/#process"
+              className={`font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 rounded-md border transition-all duration-300 ${
+                activeSection === "process"
+                  ? "border-white/30 text-white bg-white/5 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
             >
               Process
             </Link>
             <Link
-              href="#products"
-              className="font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal text-slate-300 hover:text-white transition-colors"
+              href="/products"
+              className={`font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 rounded-md border transition-all duration-300 ${
+                activeSection === "products"
+                  ? "border-white/30 text-white bg-white/5 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
             >
               Products
             </Link>
             <Link
-              href="#course"
-              className="font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal text-slate-300 hover:text-white transition-colors"
+              href="/course"
+              className={`font-satoshi font-bold text-sm md:text-[18px] leading-[26px] tracking-normal px-4 py-1.5 rounded-md border transition-all duration-300 ${
+                activeSection === "course"
+                  ? "border-white/30 text-white bg-white/5 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/5"
+              }`}
             >
               Course
             </Link>
@@ -119,39 +183,59 @@ export default function Navbar() {
       >
         <div className="flex flex-col gap-6 px-8 pt-28 pb-10">
           <Link
-            href="#works"
+            href="/#services"
             onClick={() => setIsOpen(false)}
-            className="font-satoshi font-bold text-xl text-sky-400 hover:text-sky-300 transition-colors"
+            className={`font-satoshi font-bold text-xl px-4 py-2 rounded-md border transition-all duration-300 ${
+              activeSection === "services"
+                ? "border-white/30 text-white bg-white/5"
+                : "border-transparent text-slate-300 hover:text-white"
+            }`}
+          >
+            Services
+          </Link>
+          <Link
+            href="/#works"
+            onClick={() => setIsOpen(false)}
+            className={`font-satoshi font-bold text-xl px-4 py-2 rounded-md border transition-all duration-300 ${
+              activeSection === "works"
+                ? "border-white/30 text-white bg-white/5"
+                : "border-transparent text-slate-300 hover:text-white"
+            }`}
           >
             Works
           </Link>
           <Link
-            href="#process"
+            href="/#process"
             onClick={() => setIsOpen(false)}
-            className="font-satoshi font-bold text-xl text-slate-300 hover:text-white transition-colors"
+            className={`font-satoshi font-bold text-xl px-4 py-2 rounded-md border transition-all duration-300 ${
+              activeSection === "process"
+                ? "border-white/30 text-white bg-white/5"
+                : "border-transparent text-slate-300 hover:text-white"
+            }`}
           >
             Process
           </Link>
           <Link
-            href="#products"
+            href="/products"
             onClick={() => setIsOpen(false)}
-            className="font-satoshi font-bold text-xl text-slate-300 hover:text-white transition-colors"
+            className={`font-satoshi font-bold text-xl px-4 py-2 rounded-md border transition-all duration-300 ${
+              activeSection === "products"
+                ? "border-white/30 text-white bg-white/5"
+                : "border-transparent text-slate-300 hover:text-white"
+            }`}
           >
             Products
           </Link>
           <Link
-            href="#course"
+            href="/course"
             onClick={() => setIsOpen(false)}
-            className="font-satoshi font-bold text-xl text-slate-300 hover:text-white transition-colors"
+            className={`font-satoshi font-bold text-xl px-4 py-2 rounded-md border transition-all duration-300 ${
+              activeSection === "course"
+                ? "border-white/30 text-white bg-white/5"
+                : "border-transparent text-slate-300 hover:text-white"
+            }`}
           >
             Course
-          </Link>
-          <Link
-            href="#services"
-            onClick={() => setIsOpen(false)}
-            className="mt-4 font-satoshi font-bold text-sm text-center py-3 rounded-md bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white hover:opacity-95 transition-all duration-300"
-          >
-            Services
           </Link>
         </div>
       </div>
