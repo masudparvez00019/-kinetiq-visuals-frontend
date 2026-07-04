@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Syne, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import LenisProvider from "@/providers/lenis-provider";
+import { AppStoreProvider } from "@/context/store";
 
 const syne = Syne({
   variable: "--font-syne-google",
@@ -30,9 +31,11 @@ export default function RootLayout({
       <body
         className={`${syne.variable} ${plusJakartaSans.variable} font-sans antialiased bg-[#020205] text-foreground overflow-x-hidden`}
       >
-        <LenisProvider>
-          {children}
-        </LenisProvider>
+        <AppStoreProvider>
+          <LenisProvider>
+            {children}
+          </LenisProvider>
+        </AppStoreProvider>
       </body>
     </html>
   );
