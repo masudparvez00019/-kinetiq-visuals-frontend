@@ -36,11 +36,15 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative w-full pt-20 pb-0 px-6 md:px-12 bg-[#020205] border-t border-white/5 overflow-hidden"
+      className="relative w-full pt-20 pb-0 px-6 md:px-12 bg-[#000000] bg-gradient-to-b from-[#0a0e20]/60 via-[#020308] to-[#000000] border-t border-white/10 overflow-hidden"
     >
-      {/* Background Decorative Ambient Lights */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[250px] bg-blue-900/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-0 right-1/4 w-[500px] h-[250px] bg-indigo-900/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* Top Glossy Specular Edge Line */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none z-20" />
+
+      {/* Background Glossy Ambient Lights */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[350px] bg-gradient-to-b from-blue-600/10 via-indigo-600/5 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[250px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-[500px] h-[250px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-end relative z-10 pb-8">
@@ -72,8 +76,8 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Heading (White, sentence-case, no gradient) */}
-          <h2 className="font-heading font-normal text-3xl sm:text-4xl md:text-[44px] text-white leading-tight tracking-wide mt-2 select-none">
+          {/* Heading (PP Monument Extended 48px, leading 56px, regular) */}
+          <h2 className="font-heading font-normal text-3xl sm:text-4xl md:text-[48px] text-white leading-[1.15] md:leading-[56px] tracking-normal mt-2 select-none">
             Let's Create <br />
             Something Worth <br />
             Watching
@@ -83,7 +87,7 @@ export default function Footer() {
         {/* Right Side: Brand details & Copyright */}
         <div className="flex flex-col md:items-end justify-end h-full fade-up-item select-none text-left md:text-right">
           <div className="flex flex-col md:items-end gap-2">
-            <span className="font-heading font-normal text-3xl sm:text-4xl md:text-[38px] tracking-[0.06em] text-white leading-none">
+            <span className="font-logo font-normal text-[36px] md:text-[52px] tracking-normal text-white uppercase leading-none">
               KQ VISUALS
             </span>
             <p className="text-slate-400 text-sm md:text-base font-satoshi font-light mt-2">

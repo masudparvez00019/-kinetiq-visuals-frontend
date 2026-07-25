@@ -1,14 +1,11 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, Play, Lock, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 import { useAppStore } from "@/context/store";
 
@@ -27,7 +24,7 @@ const PERKS = [
 ];
 
 export default function CourseCurriculum() {
-  const { chapters: CHAPTERS } = useAppStore();
+  const { chapters: CHAPTERS, siteConfig } = useAppStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeChapter, setActiveChapter] = useState(0);
   const [previewPage, setPreviewPage] = useState(1);
@@ -66,16 +63,16 @@ export default function CourseCurriculum() {
         {/* Header */}
         <div className="curriculum-header flex flex-col items-center text-center gap-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-3 h-3 bg-[#0080ff] shrink-0" />
-            <span className="font-satoshi text-sm text-[#0080ff] font-semibold tracking-wide">
+            <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
+            <span className="font-heading font-normal text-xs md:text-sm text-white tracking-normal">
               Course Curriculam
             </span>
           </div>
-          <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[48px] text-white leading-[1.15] tracking-wide">
-            What's Inside{" "}
-            <span className="text-[#0080ff]">The<br className="hidden md:inline" /> Course</span>
+          <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[48px] text-white leading-tight md:leading-[56px] tracking-normal">
+            What's Inside <span className="text-[#0080ff]">The</span><br />
+            <span className="text-[#0080ff]">Course</span>
           </h2>
-          <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[620px]">
+          <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[640px] text-center">
             Explore a step-by-step learning path designed to help you master video editing, content strategy, and high-converting video creation through practical lessons and real-world projects.
           </p>
         </div>
@@ -242,38 +239,38 @@ export default function CourseCurriculum() {
         </div>
 
         {/* Bottom Perks Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-[#070914] border border-white/5 rounded-2xl px-6 py-5">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 bg-[#060d17] border border-[#14243b] rounded-2xl p-5 md:px-8 md:py-6 shadow-[0_10px_30px_rgba(0,0,0,0.4)]">
           {/* Left: Icon + Perks */}
-          <div className="flex items-start sm:items-center gap-5">
-            <div className="w-12 h-12 rounded-xl bg-[#0a0d1a] border border-white/5 flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#0080ff" strokeWidth={1.7} className="w-6 h-6">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-[#091524] border border-[#162d4a] flex items-center justify-center shrink-0 shadow-inner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth={1.8} className="w-7 h-7">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M6 12v5c3.33 1.67 8.67 1.67 12 0v-5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
                 {PERKS.map((perk, i) => (
-                  <span key={i} className="flex items-center gap-1.5 font-satoshi text-xs text-slate-300 font-medium">
-                    <span className="w-1.5 h-1.5 bg-[#0080ff] rounded-full shrink-0" />
+                  <span key={i} className="flex items-center gap-2 font-satoshi font-semibold text-xs sm:text-[13px] md:text-sm text-white">
+                    <span className="text-[#3b82f6] text-base leading-none font-bold">•</span>
                     {perk}
                   </span>
                 ))}
               </div>
-              <p className="font-satoshi text-xs text-slate-500 font-light">
+              <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed">
                 Everything you need to create professional, high-converting videos.
               </p>
             </div>
           </div>
 
           {/* Right: Enroll CTA */}
-          <div className="flex items-center gap-3 shrink-0">
-            <button className="bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-sm px-7 py-3 rounded-full transition-colors shadow-[0_0_20px_rgba(0,128,255,0.35)] whitespace-nowrap">
-              Enroll Now - $149
-            </button>
-            <button className="w-11 h-11 rounded-full bg-[#0080ff] hover:bg-[#0070e6] text-white flex items-center justify-center transition-colors">
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
+          <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-end">
+            <Link href="/contact" className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
+              Enroll Now - {siteConfig?.coursePrice || "$149"}
+            </Link>
+            <Link href="/contact" className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
+              <ArrowUpRight className="w-5 h-5 text-white" />
+            </Link>
           </div>
         </div>
 

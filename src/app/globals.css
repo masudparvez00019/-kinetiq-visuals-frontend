@@ -1,6 +1,23 @@
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Sekuya&display=swap');
 @import url('https://fonts.cdnfonts.com/css/monument-extended');
+
+@font-face {
+  font-family: 'PP Monument Extended';
+  src: url('https://fonts.cdnfonts.com/s/19595/PPMonumentExtended-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Monument Extended';
+  src: url('https://fonts.cdnfonts.com/s/19595/PPMonumentExtended-Ultrabold.woff') format('woff');
+  font-weight: 700 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -11,7 +28,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta-sans);
   --font-syne: var(--font-syne-google), sans-serif;
-  --font-heading: 'Monument Extended', var(--font-syne-google);
+  --font-heading: 'PP Monument Extended', 'Monument Extended', var(--font-syne-google), sans-serif;
   --font-logo: 'Sekuya', sans-serif;
   --font-satoshi: 'Satoshi', sans-serif;
   --font-mono: var(--font-geist-mono);

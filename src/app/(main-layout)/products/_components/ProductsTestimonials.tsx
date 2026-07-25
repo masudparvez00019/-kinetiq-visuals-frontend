@@ -43,6 +43,56 @@ const TESTIMONIALS = [
   }
 ];
 
+const PRODUCTS_TESTIMONIALS_SPOTLIGHT_CSS = `
+  .testimonial-card-element {
+    position: relative;
+    overflow: hidden;
+    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
+    transition: transform 0.15s ease-out;
+    transform-style: preserve-3d;
+  }
+  .testimonial-card-element::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 1px;
+    background: radial-gradient(
+      350px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+      rgba(255, 255, 255, 0.25),
+      transparent 60%
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 2;
+  }
+  .testimonial-card-element:hover::before {
+    opacity: 1;
+  }
+  .testimonial-cursor-glow-element {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+      rgba(0, 128, 255, 0.12),
+      transparent 80%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+  }
+  .testimonial-card-element:hover .testimonial-cursor-glow-element {
+    opacity: 1;
+  }
+`;
+
 export default function ProductsTestimonials() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -102,6 +152,29 @@ export default function ProductsTestimonials() {
     );
   }, { scope: containerRef });
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (-(y - centerY) / centerY) * 8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+    
+    card.style.setProperty("--rotate-x", `${rotateX}deg`);
+    card.style.setProperty("--rotate-y", `${rotateY}deg`);
+    card.style.setProperty("--mouse-x", `${x}px`);
+    card.style.setProperty("--mouse-y", `${y}px`);
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    card.style.setProperty("--rotate-x", `0deg`);
+    card.style.setProperty("--rotate-y", `0deg`);
+  };
+
   // Slide track calculations
   const gap = 24;
   let translateValue = 0;
@@ -128,6 +201,9 @@ export default function ProductsTestimonials() {
 
   return (
     <section ref={containerRef} className="products-testimonials-section w-full bg-[#020205] py-24 px-5 md:px-12 relative z-10 border-t border-white/5 overflow-hidden">
+      {/* Inject Spotlight CSS */}
+      <style>{PRODUCTS_TESTIMONIALS_SPOTLIGHT_CSS}</style>
+
       <div className="max-w-7xl mx-auto w-full flex flex-col gap-14">
         
         {/* Header Block */}
@@ -142,8 +218,11 @@ export default function ProductsTestimonials() {
               </span>
             </div>
             {/* Title */}
-            <h2 className="font-heading font-normal text-xl sm:text-2xl md:text-[36px] lg:text-[44px] text-white leading-[1.2] tracking-wide max-w-[800px]">
-              Our templates and resources help creators work faster and achieve better results.
+            <h2 className="font-heading font-normal text-xl sm:text-2xl md:text-[36px] lg:text-[44px] text-white leading-[1.2] tracking-wide max-w-[920px]">
+              Our templates and <br className="hidden sm:block" />
+              resources help creators <br className="hidden sm:block" />
+              work faster and achieve <br className="hidden sm:block" />
+              better results.
             </h2>
           </div>
 
@@ -152,16 +231,24 @@ export default function ProductsTestimonials() {
             <button
               onClick={handlePrev}
               disabled={activeIndex === 0}
-              className="w-11 h-11 rounded-full border border-white/10 text-slate-400 hover:text-white hover:border-white/30 flex items-center justify-center transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(44,130,245,0.2)]"
+              style={{
+                border: "1.5px solid transparent",
+                background: "linear-gradient(#070914, #070914) padding-box, linear-gradient(135deg, #032688, #2c82f5) border-box"
+              }}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 text-white stroke-[2]" />
             </button>
             <button
               onClick={handleNext}
               disabled={activeIndex >= getMaxIndex()}
-              className="w-11 h-11 rounded-full border border-white/10 text-slate-400 hover:text-white hover:border-white/30 flex items-center justify-center transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-300 disabled:opacity-30 disabled:pointer-events-none hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(44,130,245,0.2)]"
+              style={{
+                border: "1.5px solid transparent",
+                background: "linear-gradient(#070914, #070914) padding-box, linear-gradient(135deg, #032688, #2c82f5) border-box"
+              }}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5 text-white stroke-[2]" />
             </button>
           </div>
 
@@ -179,40 +266,43 @@ export default function ProductsTestimonials() {
             {TESTIMONIALS.map((item) => (
               <div
                 key={item.id}
-                className="testimonial-card-element w-[calc(100vw-40px)] sm:w-[calc((100vw-120px)/2)] lg:w-[calc((100%-48px)/3)] shrink-0 bg-[#070914] border border-white/5 rounded-[24px] p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] group transition-all duration-300 hover:border-blue-500/20 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                className="testimonial-card-element w-[calc(100vw-40px)] sm:w-[calc((100vw-120px)/2)] lg:w-[calc((100%-48px)/3)] shrink-0 bg-[#020309] border border-white/20 rounded-[24px] p-8 relative overflow-hidden flex flex-col justify-between min-h-[310px] group transition-all duration-300 hover:border-blue-500/40 hover:shadow-[0_15px_35px_rgba(0,128,255,0.15)] cursor-pointer"
               >
-                {/* Glow & Quote Icon */}
-                <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-blue-600/20 to-transparent blur-xl pointer-events-none rounded-full" />
-                
-                {/* SVG Quote Icon */}
-                <div className="relative z-10 w-10 h-10 flex items-center justify-center">
-                  <svg className="w-9 h-9 text-white opacity-90" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14.017 21v-7.391c0-5.704 3.748-9.762 9-10.985v1.272c-4.084 1.157-6.902 4.195-7.29 8.243h6.273v8.861h-8zm-14 0v-7.391c0-5.704 3.748-9.762 9-10.985v1.272c-4.084 1.157-6.902 4.195-7.29 8.243h6.273v8.861h-8z" />
+                {/* Top-Left Blue Gradient Glow (Figma UI Match) */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#0066ff]/85 via-[#0044cc]/25 via-45% to-transparent pointer-events-none z-0" />
+
+                {/* SVG Quote Icon (Exact Geometric Match: Vertical rectangle with diagonal bottom cut) */}
+                <div className="relative z-10 pt-1">
+                  <svg className="w-10 h-8 text-white drop-shadow-md shrink-0" viewBox="0 0 44 32" fill="currentColor">
+                    <path d="M 0 0 H 16 V 17.5 L 0 32 Z M 24 0 H 40 V 17.5 L 24 32 Z" />
                   </svg>
                 </div>
 
                 {/* Quote Text */}
-                <p className="text-[#F2F5FA] opacity-90 text-sm md:text-base leading-relaxed font-satoshi font-light mt-6 relative z-10 flex-grow">
+                <p className="text-[#F2F5FA] opacity-95 text-sm md:text-base leading-relaxed font-satoshi font-light mt-5 relative z-10 flex-grow">
                   "{item.quote}"
                 </p>
 
-                {/* Profile block */}
-                <div className="flex items-center gap-3.5 mt-8 relative z-10">
+                {/* Profile Block (One Line Name & Role with Truncate + Hover Full Name) */}
+                <div className="flex items-center gap-3.5 mt-6 relative z-10 w-full overflow-hidden">
                   <img
                     src={item.avatar}
-                    className="w-11 h-11 rounded-full object-cover border border-white/10"
+                    className="w-12 h-12 rounded-full object-cover border border-white/20 shrink-0"
                     alt={item.name}
                   />
-                  <div className="flex flex-col">
-                    <span className="font-satoshi font-semibold text-sm md:text-base text-white tracking-wide">
+                  <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+                    <span
+                      title={item.name}
+                      className="font-heading font-semibold text-sm md:text-base text-white tracking-wide truncate max-w-[130px] sm:max-w-[150px] group-hover:max-w-none group-hover:overflow-visible transition-all duration-300 shrink-0"
+                    >
                       {item.name}
                     </span>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <div className="w-1.5 h-1.5 bg-blue-500 shrink-0" />
-                      <span className="font-satoshi text-xs text-slate-400 font-light">
-                        {item.role}
-                      </span>
-                    </div>
+                    <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
+                    <span className="font-satoshi text-xs md:text-sm text-[#d0d4e4] font-normal whitespace-nowrap shrink-0">
+                      {item.role}
+                    </span>
                   </div>
                 </div>
 

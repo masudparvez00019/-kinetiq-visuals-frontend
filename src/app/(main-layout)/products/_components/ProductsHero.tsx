@@ -101,12 +101,12 @@ export default function ProductsHero() {
     >
       <style>{PRODUCTS_STYLE_CSS}</style>
 
-      {/* Products Background Image (Figma UI match) */}
+      {/* Products Background Image (Subtle Opacity) */}
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
         <img
           src="/image-232.png"
           alt="Background Visual"
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.08]"
         />
       </div>
 

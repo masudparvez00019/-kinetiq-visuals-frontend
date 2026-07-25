@@ -48,24 +48,29 @@ export default function ProductSpecs() {
   return (
     <section
       ref={containerRef}
-      className="w-full bg-[#020205] border-t border-b border-white/5 py-20 px-5 md:px-12 relative z-10 overflow-hidden"
+      className="w-full bg-[#000000] border-t border-b border-white/5 py-20 px-5 md:px-12 relative z-10 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row justify-between items-stretch gap-10 lg:gap-8">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row justify-between items-stretch gap-10 lg:gap-12">
         {SPECS.map((spec, index) => (
           <React.Fragment key={index}>
             {/* Feature Block */}
-            <div className="spec-item-block flex flex-col flex-1 gap-4 max-w-[380px]">
-              <h3 className="font-heading font-normal text-[#0080ff] text-base md:text-lg tracking-wide uppercase">
+            <div className="spec-item-block flex flex-col flex-1 gap-3 max-w-[380px] text-left">
+              <h3 className="font-satoshi font-medium text-[#70a3f3] text-lg md:text-[22px] tracking-normal">
                 {spec.title}
               </h3>
-              <p className="font-satoshi text-xs md:text-sm text-slate-400 leading-relaxed font-light">
+              <p className="font-satoshi text-xs md:text-[14px] text-[#c4ceea] leading-[1.65] font-light mt-1">
                 {spec.description}
               </p>
             </div>
 
-            {/* Separator (rendered between elements, only visible on desktop) */}
+            {/* Vertical Shiny Lens Separator (rendered between columns on desktop) */}
             {index < SPECS.length - 1 && (
-              <div className="hidden lg:block w-[1px] h-auto bg-gradient-to-b from-transparent via-white/10 to-transparent shrink-0" />
+              <div
+                className="hidden lg:block w-[1.5px] shrink-0 self-stretch my-1"
+                style={{
+                  background: "linear-gradient(to bottom, transparent 0%, rgba(80,78,234,0.1) 15%, rgba(80,78,234,0.8) 35%, #FFFFFF 50%, rgba(80,78,234,0.8) 65%, rgba(80,78,234,0.1) 85%, transparent 100%)"
+                }}
+              />
             )}
           </React.Fragment>
         ))}

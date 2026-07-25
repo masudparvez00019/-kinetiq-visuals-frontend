@@ -6,6 +6,8 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import Link from "next/link";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -34,40 +36,36 @@ export default function ProductsCta() {
   return (
     <section
       ref={containerRef}
-      className="w-full bg-[#020205] py-20 px-5 md:px-12 relative z-10 overflow-hidden"
+      className="w-full bg-[#000000] py-20 px-5 md:px-12 relative z-10 overflow-hidden"
     >
-      <div className="max-w-5xl mx-auto w-full products-cta-card rounded-[32px] border border-white/5 overflow-hidden flex flex-col lg:flex-row shadow-2xl">
+      <div className="max-w-[1360px] mx-auto w-full products-cta-card lg:h-[409px] rounded-[30px] border border-white/20 overflow-hidden grid grid-cols-1 lg:grid-cols-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
         
-        {/* Left Column (Vibrant Blue side) */}
-        <div className="flex-[1.1] bg-[#005cfa] bg-gradient-to-br from-[#0066ff] to-[#004cd9] p-10 md:p-12 lg:p-16 flex flex-col justify-center gap-6 text-white">
-          <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[36px] lg:text-[40px] leading-[1.2] tracking-wide">
-            Need a Custom <br className="hidden md:inline" /> Asset Pack?
+        {/* Left Column (Vibrant Blue side - Figma Linear Gradient: to bottom #0D5FD4 -> #133C8B) */}
+        <div className="bg-gradient-to-b from-[#0D5FD4] to-[#133C8B] p-10 md:p-12 lg:p-14 flex flex-col justify-center text-white h-full">
+          <h2 className="font-heading font-normal text-3xl sm:text-4xl md:text-[40px] leading-[1.18] tracking-normal mb-5">
+            Need a Custom <br className="hidden sm:inline" /> Asset Pack?
           </h2>
-          <p className="font-satoshi text-xs md:text-sm text-white/85 leading-relaxed font-light max-w-[480px]">
+          <p className="font-satoshi text-xs md:text-sm text-white/90 leading-[1.65] font-light max-w-[500px] mb-7">
             Can't find exactly what you're looking for? We create custom asset packs tailored to your project, brand, and creative requirements. Get the specific resources you need, organized and ready for production.
           </p>
           
           {/* Action Row */}
-          <div className="flex items-center gap-3 mt-2">
-            <button className="bg-black hover:bg-zinc-900 text-white font-heading font-normal text-xs md:text-sm px-7 py-3.5 rounded-full transition-colors shadow-lg">
+          <div className="flex items-center gap-3">
+            <Link href="/contact" className="bg-[#070D1B] hover:bg-black text-white font-satoshi font-semibold text-xs md:text-sm px-8 py-3.5 rounded-full transition-colors shadow-lg cursor-pointer inline-flex items-center justify-center">
               Book a Free Strategy Call
-            </button>
-            <button className="w-12 h-12 rounded-full bg-black hover:bg-zinc-900 text-white flex items-center justify-center transition-colors shadow-lg">
+            </Link>
+            <Link href="/contact" className="w-12 h-12 rounded-full bg-[#070D1B] hover:bg-black text-white flex items-center justify-center transition-colors shadow-lg cursor-pointer shrink-0">
               <ArrowUpRight className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
         </div>
 
-        {/* Right Column (Illustration side) */}
-        <div className="flex-1 bg-[#05060b] flex items-center justify-center p-8 lg:p-12 relative overflow-hidden min-h-[300px]">
-          {/* Circular Glow background */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-600/10 blur-[80px] pointer-events-none rounded-full" />
-          
+        {/* Right Column (3D Custom Pack Illustration side - Full Cover Image) */}
+        <div className="relative w-full h-full min-h-[300px] lg:min-h-full overflow-hidden bg-[#04060c]">
           <img
             src="/custom-pack-illustration.png"
-            alt="Custom Pack Specifications"
-            className="w-full max-w-[400px] object-contain relative z-10 animate-pulse-slow"
-            style={{ animationDuration: '4s' }}
+            alt="Custom Asset Pack Illustration"
+            className="w-full h-full object-cover object-center relative z-10 transition-transform duration-700 hover:scale-[1.02]"
           />
         </div>
 

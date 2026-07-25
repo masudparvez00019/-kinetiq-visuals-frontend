@@ -155,14 +155,14 @@ export default function HeroSection() {
             <div className="animate-cta-item flex items-center gap-3">
               {/* Primary Call to Action */}
               <Link
-                href="#services"
+                href="/contact"
                 className="px-8 py-3.5 bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white rounded-full font-satoshi font-semibold text-sm tracking-wide hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300"
               >
                 Book a Free Strategy Call
               </Link>
               {/* Arrow Circle Button */}
               <Link
-                href="#services"
+                href="/contact"
                 className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white flex items-center justify-center hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300"
               >
                 <FiArrowUpRight size={20} />

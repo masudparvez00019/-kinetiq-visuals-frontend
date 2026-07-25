@@ -137,11 +137,11 @@ export default function ProcessSection() {
           <div className="lg:col-span-8 relative">
             
             {/* Continuous Vertical Timeline Line (centered between steps and mockups on desktop) */}
-            <div className="absolute left-[calc(50%-0.5px)] top-8 bottom-8 w-[1px] bg-white/10 hidden md:block overflow-hidden">
-              {/* Animated blue progress line */}
+            <div className="absolute left-[calc(50%-0.5px)] top-8 bottom-8 w-[2px] bg-white/10 hidden md:block overflow-hidden">
+              {/* Animated glowing laser blue progress line */}
               <div
                 ref={progressLineRef}
-                className="w-full bg-[#2C82F5] origin-top h-full"
+                className="w-full bg-gradient-to-b from-[#032688] via-[#2C82F5] via-70% to-white origin-top h-full shadow-[0_0_12px_rgba(44,130,245,1),_0_0_24px_rgba(44,130,245,0.7)]"
                 style={{ transform: "scaleY(0)" }}
               />
             </div>
@@ -175,7 +175,7 @@ export default function ProcessSection() {
 
                     {/* Active Indicator sitting directly on the vertical line (desktop only, aligned with text) */}
                     <div className="absolute right-[-32px] translate-x-1/2 top-1/2 -translate-y-1/2 hidden md:flex items-center z-20 pointer-events-none">
-                      <span className={`text-[#2C82F5] text-xs transition-all duration-300 mr-2 ${
+                      <span className={`text-[#2C82F5] text-xs transition-all duration-300 mr-2 drop-shadow-[0_0_8px_rgba(44,130,245,0.8)] ${
                         activeStep === idx ? "opacity-100 scale-100 translate-x-0" : "opacity-0 scale-75 -translate-x-1"
                       }`}>
                         ◀
@@ -183,13 +183,13 @@ export default function ProcessSection() {
                       <div className="relative flex items-center justify-center">
                         {activeStep === idx ? (
                           <>
-                            <div className="absolute w-6 h-6 bg-[#2C82F5]/30 rounded-full animate-ping" />
-                            <div className="w-4 h-4 bg-[#2C82F5] rounded-full border border-white flex items-center justify-center">
+                            <div className="absolute w-6 h-6 bg-[#2C82F5]/40 rounded-full animate-ping" />
+                            <div className="w-4 h-4 bg-[#2C82F5] rounded-full border border-white shadow-[0_0_14px_#2C82F5] flex items-center justify-center">
                               <div className="w-1.5 h-1.5 bg-white rounded-full" />
                             </div>
                           </>
                         ) : (
-                          <div className="w-2.5 h-2.5 bg-slate-700 rounded-sm" />
+                          <div className="w-2.5 h-2.5 bg-slate-700/80 rounded-full border border-white/10" />
                         )}
                       </div>
                     </div>

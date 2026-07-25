@@ -12,12 +12,24 @@ interface ProductDetailsHeroProps {
   id: string;
 }
 
+const DEFAULT_NEBULA_PRODUCT = {
+  id: "nebula-cosmic-trailer-sfx",
+  title: "Nebula Cosmic Trailer SFX",
+  category: "SFX Pack",
+  tag: "Sound Pack",
+  price: "$32",
+  originalPrice: "$42",
+  rating: "4.9",
+  image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&h=600&q=80",
+  description: "Epic cinematic trailer sound effects designed to add scale, tension, and impact to your videos. Featuring powerful hits, risers, whooshes, drones, and atmospheric textures inspired by the vastness of space."
+};
+
 export default function ProductDetailsHero({ id }: ProductDetailsHeroProps) {
   const { products: PRODUCTS } = useAppStore();
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Find product by id, fallback to Nebula details
-  const product = PRODUCTS.find((p) => p.id === id) || PRODUCTS[1] || PRODUCTS[0];
+  // Safely find product by id, fallback to default Nebula product if store is uninitialized
+  const product = (PRODUCTS && PRODUCTS.length > 0 ? PRODUCTS.find((p) => p.id === id) : null) || (PRODUCTS && PRODUCTS[0]) || DEFAULT_NEBULA_PRODUCT;
 
   useGSAP(() => {
     // Sequence entrance animation
@@ -69,56 +81,116 @@ export default function ProductDetailsHero({ id }: ProductDetailsHeroProps) {
           Back to Products
         </Link>
 
-        {/* Two-Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full">
+        {/* Two-Column Grid (5 cols image, 7 cols info for 681px Figma spec width) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center w-full">
           
           {/* Left Column: Cover Image & Preview Link */}
-          <div className="flex flex-col items-center w-full">
+          <div className="lg:col-span-5 flex flex-col items-center w-full">
             
-            {/* Image Card Box */}
-            <div className="details-image-card w-full max-w-[480px] aspect-square bg-[#070914]/80 border border-white/5 rounded-3xl overflow-hidden shadow-2xl p-8 relative flex items-center justify-center group">
-              {/* Blur Glow behind Image */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-600/10 blur-[60px] pointer-events-none rounded-full" />
+            {/* Image Card Box (Full Bleed Image with Top/Bottom Special Lens SVG Lines) */}
+            <div className="details-image-card w-full max-w-[440px] xl:max-w-[480px] aspect-square bg-[#070914] rounded-[28px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative flex items-center justify-center group p-0">
+              {/* Top Shiny Border Line (Special Tapered Lens SVG) */}
+              <svg className="origin-center absolute top-0 left-[20px] right-[20px] w-[calc(100%-40px)] h-[3.5px] pointer-events-none z-20" viewBox="0 0 100 3.5" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="detail-glow-top-img" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#504EEA" stopOpacity="0" />
+                    <stop offset="15%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
+                    <stop offset="85%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#504EEA" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0,1.75 Q 50,0 100,1.75 Q 50,3.5 0,1.75 Z" fill="url(#detail-glow-top-img)" />
+              </svg>
               
               <img
                 src={product.image}
                 alt={product.title}
-                className="w-full h-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-[1.02]"
+                className="w-full h-full object-cover relative z-10 transition-transform duration-700 group-hover:scale-[1.03]"
               />
+
+              {/* Bottom Shiny Border Line (Special Tapered Lens SVG) */}
+              <svg className="origin-center absolute bottom-0 left-[20px] right-[20px] w-[calc(100%-40px)] h-[3.5px] pointer-events-none z-20" viewBox="0 0 100 3.5" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="detail-glow-bottom-img" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#504EEA" stopOpacity="0" />
+                    <stop offset="15%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
+                    <stop offset="85%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#504EEA" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0,1.75 Q 50,0 100,1.75 Q 50,3.5 0,1.75 Z" fill="url(#detail-glow-bottom-img)" />
+              </svg>
             </div>
 
             {/* Preview Label */}
-            <button className="font-heading font-normal text-xs uppercase tracking-widest text-[#F2F5FA] opacity-80 mt-6 hover:opacity-100 hover:text-blue-400 transition-colors select-none">
+            <button className="font-heading font-normal text-sm md:text-base uppercase tracking-widest text-white mt-6 hover:text-blue-400 transition-colors select-none">
               Preview the Pack
             </button>
 
           </div>
 
           {/* Right Column: Details Info Block */}
-          <div className="details-info-block flex flex-col w-full">
+          <div className="lg:col-span-7 details-info-block flex flex-col w-full text-left">
             
-            {/* Product Tag */}
-            <div className="bg-[#0a0d18] border border-blue-500/20 text-[#0080ff] px-4.5 py-1.5 rounded-full text-[10px] md:text-xs font-semibold w-fit uppercase tracking-widest mb-6">
+            {/* Product Tag Badge (Matching Pill SVG Lens Image Style) */}
+            <div className="relative inline-flex items-center justify-center px-6 py-2 rounded-full text-xs font-satoshi font-medium text-white bg-[#070D1B] overflow-hidden select-none w-fit mb-6">
+              {/* Top Mini Tapered SVG Lens Border */}
+              <svg className="absolute top-0 left-3 right-3 w-[calc(100%-24px)] h-[1.5px] pointer-events-none" viewBox="0 0 100 1.5" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="detail-tag-glow-top" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#504EEA" stopOpacity="0" />
+                    <stop offset="25%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
+                    <stop offset="75%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#504EEA" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0,0.75 Q 50,0 100,0.75 Q 50,1.5 0,0.75 Z" fill="url(#detail-tag-glow-top)" />
+              </svg>
+
               {product.tag}
+
+              {/* Bottom Mini Tapered SVG Lens Border */}
+              <svg className="absolute bottom-0 left-3 right-3 w-[calc(100%-24px)] h-[1.5px] pointer-events-none" viewBox="0 0 100 1.5" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="detail-tag-glow-bottom" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#504EEA" stopOpacity="0" />
+                    <stop offset="25%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#FFFFFF" stopOpacity="1" />
+                    <stop offset="75%" stopColor="#504EEA" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#504EEA" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M 0,0.75 Q 50,0 100,0.75 Q 50,1.5 0,0.75 Z" fill="url(#detail-tag-glow-bottom)" />
+              </svg>
             </div>
 
-            {/* Product Title */}
-            <h1 className="font-heading font-normal text-2xl sm:text-3xl md:text-[44px] lg:text-[50px] text-white leading-[1.15] tracking-wide mb-6">
-              {product.title}
+            {/* Product Title (Figma Spec: PP Monument Extended 40px, leading 48px, weight 525) */}
+            <h1 className="font-heading font-medium text-2xl sm:text-3xl md:text-[40px] text-white leading-[1.2] md:leading-[48px] tracking-normal mb-6 max-w-[681px]">
+              {product.title === "Nebula Cosmic Trailer SFX" ? (
+                <>
+                  Nebula Cosmic Trailer <br className="hidden sm:inline" />
+                  SFX
+                </>
+              ) : (
+                product.title
+              )}
             </h1>
 
-            {/* Description */}
-            <p className="font-satoshi text-xs md:text-sm text-slate-400 leading-relaxed font-light mb-8 max-w-[540px]">
+            {/* Description (Figma Spec: Satoshi 18px, leading 26px, weight 500) */}
+            <p className="font-satoshi font-medium text-sm sm:text-base md:text-[18px] text-[#d4dcfa] leading-normal md:leading-[26px] tracking-normal mb-8 max-w-[681px]">
               {product.description}
             </p>
 
-            {/* Pricing Section */}
-            <div className="flex items-baseline gap-3.5 mb-8">
-              <span className="font-heading font-semibold text-2xl md:text-[32px] text-white">
+            {/* Pricing Section (Figma Spec: PP Monument Extended 32px, leading 40px, weight 525) */}
+            <div className="flex items-baseline gap-4 mb-8">
+              <span className="font-heading font-medium text-2xl md:text-[32px] text-white leading-[40px] tracking-normal">
                 {product.price}
               </span>
               {product.originalPrice && (
-                <span className="font-heading text-lg md:text-xl text-slate-500 line-through">
+                <span className="font-heading font-medium text-xl md:text-2xl text-[#4d5a78] line-through leading-[40px] tracking-normal">
                   {product.originalPrice}
                 </span>
               )}
@@ -127,16 +199,16 @@ export default function ProductDetailsHero({ id }: ProductDetailsHeroProps) {
             {/* Actions Row */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
               
-              {/* Buy Now Button */}
-              <button className="bg-[#0080ff] text-white text-xs md:text-sm font-heading font-normal px-9 py-4 rounded-full hover:bg-[#0070e6] transition-colors shadow-[0_0_20px_rgba(0,128,255,0.35)] w-full sm:w-auto text-center">
+              {/* Buy Now Button (Services Gradient Style) */}
+              <button className="bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white text-sm md:text-base font-satoshi font-bold px-10 py-3.5 rounded-full hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 w-full sm:w-auto text-center cursor-pointer">
                 Buy Now
               </button>
 
               {/* Star Rating Info */}
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 fill-amber-500 text-amber-500 shrink-0" />
-                <span className="font-satoshi text-sm text-[#F2F5FA] opacity-90 font-semibold mt-0.5">
-                  4.9 <span className="text-slate-400 font-light">(50 Reviews)</span>
+              <div className="flex items-center gap-2.5">
+                <Star className="w-5 h-5 fill-[#f59e0b] text-[#f59e0b] shrink-0" />
+                <span className="font-heading text-sm md:text-base text-white font-medium tracking-wide">
+                  4.9 <span className="font-heading font-normal text-white">(50 Reviews)</span>
                 </span>
               </div>
 

@@ -16,7 +16,7 @@ const TAGS = ["Travel", "Cooking", "Fitness", "Gardening", "Tech Reviews"];
 const CTA_STYLE_CSS = `
   .cta-tag-pill {
     position: relative;
-    background: rgba(18, 35, 63, 0.38) !important;
+    background: #070D1B !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -24,12 +24,12 @@ const CTA_STYLE_CSS = `
   }
   .cta-tag-pill:hover {
     transform: translateY(-3px);
-    background: rgba(44, 130, 245, 0.15) !important;
-    box-shadow: 0 10px 25px rgba(44, 130, 245, 0.12);
+    background: #0f1a35 !important;
+    box-shadow: 0 10px 25px rgba(44, 130, 245, 0.2);
   }
   .cta-tag-pill svg {
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-    opacity: 0.75;
+    opacity: 0.85;
   }
   .cta-tag-pill:hover svg {
     transform: scaleX(1.1);
@@ -73,19 +73,25 @@ export default function CtaSection() {
   return (
     <section
       ref={containerRef}
-      className="w-full py-24 bg-[#020205] px-6 md:px-12 relative overflow-hidden"
+      className="w-full py-24 bg-[#000000] px-4 sm:px-6 md:px-12 relative overflow-hidden"
     >
       {/* Inject custom CSS */}
       <style>{CTA_STYLE_CSS}</style>
 
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-gradient-to-r from-blue-600/5 via-indigo-600/3 to-cyan-500/5 rounded-full blur-[140px] pointer-events-none" />
+      {/* Background Ambient Glow Behind Glass Card */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[950px] h-[450px] bg-gradient-to-r from-blue-600/25 via-indigo-600/15 to-cyan-500/20 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Main Bordered Container (Top and Bottom borders styled as CaseStudy SVG Lenses) */}
-      <div className="max-w-[1360px] mx-auto w-full py-16 flex flex-col gap-8 relative z-10 text-left">
+      {/* Main Transparent Glossy Glass Container */}
+      <div className="max-w-[1360px] mx-auto w-full py-12 md:py-16 px-6 md:px-14 flex flex-col gap-8 relative z-10 text-left bg-gradient-to-b from-white/[0.08] via-white/[0.02] to-black/40 backdrop-blur-2xl rounded-[32px]  shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),_inset_0_-1px_1px_rgba(0,0,0,0.5),_0_25px_60px_rgba(0,0,0,0.6)] overflow-hidden">
         
+        {/* Top Specular Edge Highlight Line */}
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none z-20" />
+
+        {/* Top Half Glossy Glass Reflection */}
+        <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none rounded-t-[32px]" />
+
         {/* Top Tapered Lens Border */}
-        <svg className="cta-border-line-svg origin-center absolute top-0 left-0 w-full h-[3.5px] pointer-events-none" viewBox="0 0 100 3.5" preserveAspectRatio="none">
+        <svg className="cta-border-line-svg origin-center absolute top-0 left-0 w-full h-[3.5px] pointer-events-none z-20" viewBox="0 0 100 3.5" preserveAspectRatio="none">
           <defs>
             <linearGradient id="cta-glow-grad-top" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#504EEA" stopOpacity="0" />
@@ -106,27 +112,27 @@ export default function CtaSection() {
         </svg>
 
         {/* Subtitle */}
-        <div className="cta-fade-item flex items-center gap-2 text-white font-heading font-normal tracking-wide text-xs md:text-sm select-none">
+        <div className="cta-fade-item flex items-center gap-2 text-white font-heading font-normal tracking-wide text-xs md:text-sm select-none relative z-10">
           <span className="w-2.5 h-2.5 bg-blue-500 shrink-0" />
           <span>Let's Create Engaging Contents</span>
         </div>
 
         {/* Main Heading */}
-        <h2 className="cta-fade-item font-heading font-normal text-2xl sm:text-3xl md:text-[40px] lg:text-[44px] text-white leading-tight tracking-wide max-w-5xl select-none">
+        <h2 className="cta-fade-item font-heading font-normal text-2xl sm:text-3xl md:text-[40px] lg:text-[44px] text-white leading-tight tracking-wide max-w-5xl select-none relative z-10">
           Ready to Turn Raw Footage <br />
           Into High-Performing <br />
           Content?
         </h2>
 
         {/* Description */}
-        <p className="cta-fade-item font-satoshi text-slate-400 text-sm sm:text-base leading-relaxed max-w-3xl mt-2 select-none">
+        <p className="cta-fade-item font-satoshi text-slate-400 text-sm sm:text-base leading-relaxed max-w-3xl mt-2 select-none relative z-10">
           In today's crowded digital landscape, great content alone isn't enough—presentation matters. <br className="hidden md:inline" />
           Professionally edited videos help your brand stand out, communicate your message clearly, and <br className="hidden md:inline" />
           keep viewers engaged from the first second to the last.
         </p>
 
         {/* Bottom Area: Tags & Buttons */}
-        <div className="cta-fade-item flex flex-col lg:flex-row lg:items-center justify-between gap-8 mt-6 w-full">
+        <div className="cta-fade-item flex flex-col lg:flex-row lg:items-center justify-between gap-8 mt-6 w-full relative z-10">
           {/* Tags List (Left Column) */}
           <div className="flex flex-wrap gap-3 max-w-2xl">
             {TAGS.map((tag, idx) => (

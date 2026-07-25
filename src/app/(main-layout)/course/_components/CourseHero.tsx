@@ -5,7 +5,12 @@ import Link from "next/link";
 import { ArrowUpRight, Play, Pause, Volume2, Settings, Maximize2 } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAppStore } from "@/context/store";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const STATS = [
   { icon: "play", value: "500+", label: "Premium Lessons" },
@@ -19,6 +24,39 @@ const AVATARS = [
   "https://i.pravatar.cc/40?img=22",
   "https://i.pravatar.cc/40?img=33",
 ];
+
+function CounterNumber({ value }: { value: string }) {
+  const [displayVal, setDisplayVal] = useState(0);
+  const nodeRef = useRef<HTMLSpanElement>(null);
+  
+  const match = value.match(/^(\d+)(.*)$/);
+  const targetNum = match ? parseInt(match[1], 10) : 0;
+  const suffix = match ? match[2] : "";
+
+  useGSAP(() => {
+    if (!nodeRef.current) return;
+    const obj = { val: 0 };
+    
+    gsap.to(obj, {
+      val: targetNum,
+      duration: 2.2,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: nodeRef.current,
+        start: "top 95%",
+      },
+      onUpdate: () => {
+        setDisplayVal(Math.floor(obj.val));
+      },
+    });
+  }, { scope: nodeRef });
+
+  return (
+    <span ref={nodeRef} className="font-satoshi font-semibold text-2xl md:text-[32px] text-white tracking-tight leading-none">
+      {displayVal}{suffix}
+    </span>
+  );
+}
 
 export default function CourseHero() {
   const { siteConfig } = useAppStore();
@@ -123,6 +161,15 @@ export default function CourseHero() {
       ref={containerRef}
       className="relative w-full min-h-screen flex flex-col justify-center pt-28 pb-8 px-5 md:px-12 overflow-hidden bg-[#020310]"
     >
+      {/* Products Background Image (Clearly Visible) */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
+        <img
+          src="/image-232.png"
+          alt="Background Visual"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
+        />
+      </div>
+
       {/* Rich Blue Radial Background Glow */}
       <div className="absolute inset-0 pointer-events-none z-0">
         {/* Center-bottom deep blue glow burst */}
@@ -146,37 +193,37 @@ export default function CourseHero() {
         {/* Two Column Hero */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full">
 
-          {/* LEFT: Text Content */}
-          <div className="flex flex-col gap-6 max-w-[600px]">
+          {/* LEFT: Text Content (Figma Spec: 659px width) */}
+          <div className="flex flex-col gap-6 max-w-[659px] w-full">
 
             {/* Label */}
             <div className="course-hero-label flex items-center gap-2.5">
-              <div className="w-3 h-3 bg-[#0080ff] shrink-0" />
-              <span className="font-satoshi text-sm text-[#0080ff] font-semibold tracking-wide">
+              <div className="w-3.5 h-3.5 bg-[#5097f5] shrink-0" />
+              <span className="font-heading font-normal text-sm md:text-base text-white tracking-normal">
                 Courses
               </span>
             </div>
 
-            {/* Title */}
-            <h1 className="course-hero-title font-heading font-normal leading-[1.1] tracking-wide flex flex-col gap-0">
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[58px] text-white">Master</span>
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[58px] text-white">Cinematic</span>
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[58px] text-[#0080ff]">Video Editing</span>
+            {/* Title (Figma Spec: PP Monument Extended 62px, leading 70px, weight 400) */}
+            <h1 className="course-hero-title font-heading font-normal tracking-normal flex flex-col gap-0">
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">Master</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">Cinematic</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-[#5097f5] leading-[1.15] lg:leading-[70px]">Video Editing</span>
             </h1>
 
             {/* Description */}
-            <p className="course-hero-desc font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[480px]">
+            <p className="course-hero-desc font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed max-w-[480px]">
               {siteConfig.courseDescription}
             </p>
 
-            {/* CTA Actions */}
+            {/* CTA Actions (Matching Services Gradient Style) */}
             <div className="course-hero-actions flex items-center gap-3">
-              <button className="bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-sm px-8 py-3.5 rounded-full transition-colors shadow-[0_0_24px_rgba(0,128,255,0.45)] whitespace-nowrap">
+              <Link href="/contact" className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
                 Enroll Now - {siteConfig.coursePrice}
-              </button>
-              <button className="w-12 h-12 rounded-full bg-[#0080ff] hover:bg-[#0070e6] text-white flex items-center justify-center transition-colors shadow-[0_0_18px_rgba(0,128,255,0.35)]">
+              </Link>
+              <Link href="/contact" className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
                 <ArrowUpRight className="w-5 h-5" />
-              </button>
+              </Link>
             </div>
 
             {/* Social Proof */}
@@ -212,57 +259,55 @@ export default function CourseHero() {
           </div>
 
           {/* RIGHT: Video Player */}
-          <div className="course-hero-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl relative flex flex-col">
-            {/* Video Element */}
-            <div className="relative aspect-video w-full bg-black group cursor-pointer" onClick={togglePlay}>
-              <video
-                ref={videoRef}
-                className="w-full h-full object-cover"
-                poster="/nebula-video-poster.png"
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={handleLoadedMetadata}
-                onEnded={() => setIsPlaying(false)}
-                preload="none"
-                playsInline
-              >
-                <source src="/video/video.mp4" type="video/mp4" />
-              </video>
+          <div className="course-hero-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl relative aspect-video group cursor-pointer" onClick={togglePlay}>
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover relative z-0"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onEnded={() => setIsPlaying(false)}
+              preload="auto"
+              playsInline
+            >
+              <source src="/video/video.mp4" type="video/mp4" />
+            </video>
 
-              {/* Play Overlay */}
-              <div className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-300 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}>
-                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors">
-                  {isPlaying ? <Pause className="w-6 h-6 text-white" /> : <Play className="w-6 h-6 text-white ml-1" />}
-                </div>
+            {/* Play Overlay Button */}
+            <div className={`absolute inset-0 bg-black/10 group-hover:bg-black/20 flex items-center justify-center transition-opacity duration-300 z-10 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}>
+              <div className="w-16 h-16 rounded-2xl bg-[#0b1328]/85 border border-white/25 backdrop-blur-md text-white flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:scale-110 hover:bg-[#2C82F5] transition-all duration-300">
+                {isPlaying ? <Pause className="w-6 h-6 fill-white" /> : <Play className="w-6 h-6 fill-white ml-1" />}
               </div>
             </div>
 
-            {/* Video Controls Bar */}
-            <div className="bg-[#0a0d1a] border-t border-white/5 px-4 py-3 flex flex-col gap-2">
+            {/* Floating Video Controls Overlay Bar (Matching Screenshot UI) */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3 select-none">
               {/* Progress Bar */}
               <div
-                className="w-full h-1 bg-white/10 rounded-full cursor-pointer relative overflow-hidden group"
+                className="w-full h-[3.5px] bg-white/20 hover:h-[5px] rounded-full cursor-pointer relative overflow-hidden transition-all duration-200"
                 onClick={handleProgressClick}
               >
                 <div
-                  className="h-full bg-[#0080ff] rounded-full transition-all duration-100"
+                  className="h-full bg-[#0080ff] rounded-full relative"
                   style={{ width: `${progress}%` }}
-                />
+                >
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white shadow-md" />
+                </div>
               </div>
 
               {/* Controls Row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <button onClick={togglePlay} className="text-slate-300 hover:text-white transition-colors">
-                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <button onClick={togglePlay} className="text-white hover:text-[#0080ff] transition-colors cursor-pointer">
+                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-white" />}
                   </button>
-                  <span className="font-satoshi text-[11px] text-slate-400">
+                  <span className="font-satoshi text-xs md:text-sm text-white font-medium tracking-wide">
                     {currentTime} / {duration}
                   </span>
                 </div>
-                <div className="flex items-center gap-2.5 text-slate-400">
-                  <Volume2 className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-                  <Settings className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
-                  <Maximize2 className="w-4 h-4 hover:text-white cursor-pointer transition-colors" />
+                <div className="flex items-center gap-3.5 text-white">
+                  <Volume2 className="w-4.5 h-4.5 hover:text-[#0080ff] cursor-pointer transition-colors" />
+                  <Settings className="w-4.5 h-4.5 hover:text-[#0080ff] cursor-pointer transition-colors" />
+                  <Maximize2 className="w-4.5 h-4.5 hover:text-[#0080ff] cursor-pointer transition-colors" />
                 </div>
               </div>
             </div>
@@ -270,45 +315,61 @@ export default function CourseHero() {
 
         </div>
 
-        {/* Stats Row */}
-        <div className="course-stats-row grid grid-cols-2 lg:grid-cols-4 w-full bg-[#0a0d1a]/80 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
+        {/* Stats Row (Exact Figma 1 Match: Satoshi Numbers, Thin White Outlined Icons, Shiny Lens Separators) */}
+        <div className="course-stats-row relative w-full bg-[#070d1e]/60 border border-white/15 rounded-[28px] overflow-hidden backdrop-blur-2xl px-6 py-6 md:py-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-10 flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-0">
+          {/* Top Specular Edge Line */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/35 to-transparent pointer-events-none z-20" />
+          
+          {/* Ambient Blue Light Wave Streak */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,102,255,0.2),transparent_70%)] pointer-events-none z-0" />
+
           {STATS.map((stat, i) => (
-            <div
-              key={i}
-              className={`flex items-center gap-4 px-6 lg:px-8 py-6 ${i < STATS.length - 1 ? "border-b lg:border-b-0 lg:border-r border-white/5" : ""}`}
-            >
-              {/* Icon Circle */}
-              <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center shrink-0">
-                {stat.icon === "play" && <Play className="w-4 h-4 text-slate-300 ml-0.5" />}
-                {stat.icon === "graduation" && (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4 text-slate-300">
-                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M6 12v5c3.33 1.67 8.67 1.67 12 0v-5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {stat.icon === "clock" && (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4 text-slate-300">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {stat.icon === "shield" && (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4 text-slate-300">
-                    <path d="M12 2l7 4v6c0 4-3.5 7.74-7 9-3.5-1.26-7-5-7-9V6l7-4z" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
+            <React.Fragment key={i}>
+              <div className="flex items-center gap-4 flex-1 justify-center relative z-10">
+                {/* Icon Circle (Translucent Blue Fill, Thin White Outlined Icon) */}
+                <div className="w-14 h-14 rounded-full border border-white/20 bg-[#162744]/70 flex items-center justify-center shrink-0 shadow-md">
+                  {stat.icon === "play" && (
+                    <Play className="w-5 h-5 text-white stroke-[1.6] fill-none ml-0.5" />
+                  )}
+                  {stat.icon === "graduation" && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M6 12v5c3.33 1.67 8.67 1.67 12 0v-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  {stat.icon === "clock" && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  {stat.icon === "shield" && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
+                      <path d="M12 2l7 4v6c0 4-3.5 7.74-7 9-3.5-1.26-7-5-7-9V6l7-4z" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+
+                {/* Value & Label */}
+                <div className="flex flex-col text-left">
+                  <CounterNumber value={stat.value} />
+                  <span className="font-satoshi text-[11px] md:text-[12px] text-[#94a3b8] uppercase tracking-wider font-medium mt-1.5">
+                    {stat.label}
+                  </span>
+                </div>
               </div>
-              {/* Value & Label */}
-              <div className="flex flex-col">
-                <span className="font-heading font-semibold text-xl md:text-2xl text-white leading-none">
-                  {stat.value}
-                </span>
-                <span className="font-satoshi text-[10px] md:text-xs text-slate-500 uppercase tracking-wider mt-1">
-                  {stat.label}
-                </span>
-              </div>
-            </div>
+
+              {/* Special Tapered Shiny Lens Vertical Separator Line */}
+              {i < STATS.length - 1 && (
+                <div
+                  className="hidden lg:block w-[1.5px] h-12 shrink-0 self-center z-10"
+                  style={{
+                    background: "linear-gradient(to bottom, transparent 0%, rgba(80,78,234,0.15) 15%, rgba(80,78,234,0.9) 35%, #FFFFFF 50%, rgba(80,78,234,0.9) 65%, rgba(80,78,234,0.15) 85%, transparent 100%)"
+                  }}
+                />
+              )}
+            </React.Fragment>
           ))}
         </div>
 

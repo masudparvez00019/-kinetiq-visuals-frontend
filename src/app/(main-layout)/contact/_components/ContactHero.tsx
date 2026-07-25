@@ -27,7 +27,7 @@ export default function ContactHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full min-h-[55vh] flex flex-col items-center justify-center pt-32 pb-16 px-5 md:px-12 overflow-hidden bg-[#020310]"
+      className="relative w-full min-h-[50vh] flex flex-col items-center justify-center pt-32 pb-16 px-5 md:px-12 overflow-hidden bg-[#020310]"
     >
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -44,12 +44,13 @@ export default function ContactHero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-3xl mx-auto w-full flex flex-col items-center text-center gap-6">
-        <h1 className="contact-hero-title font-heading font-normal text-3xl sm:text-4xl md:text-5xl lg:text-[58px] text-white leading-[1.1] tracking-wide">
-          Questions? Ideas? Let's
-          <br /> Connect.
+      <div className="relative z-10 max-w-5xl mx-auto w-full flex flex-col items-center text-center gap-5">
+        <h1 className="contact-hero-title font-heading font-normal text-2xl sm:text-3xl md:text-[42px] lg:text-[46px] text-white leading-[1.18] tracking-normal text-center">
+          <span className="inline-block">Questions? Ideas? Let's</span>
+          <br />
+          <span className="inline-block">Connect.</span>
         </h1>
-        <p className="contact-hero-desc font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[520px]">
+        <p className="contact-hero-desc font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed max-w-[660px] text-center mt-1">
           Every great project starts with a conversation. If you're looking for professional video editing, creative support, or simply want to explore what's possible, send us a message. We're always happy to help.
         </p>
       </div>
