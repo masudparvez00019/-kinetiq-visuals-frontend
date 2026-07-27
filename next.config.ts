@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,16 +11,17 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   /**
-   * Pin Turbopack's project root to "." (this directory). Without this,
-   * Next 16 + Turbopack walks up the filesystem looking for the nearest
-   * lockfile and warns "we inferred your workspace root" — and worse, the
-   * standalone emit path becomes `.next/standalone/<absolute path>/...`
-   * instead of `.next/standalone/<projectRoot>/...`, which makes the
-   * Dockerfile paths brittle. Setting this explicitly keeps the standalone
-   * layout flat and removes the build-time warning.
+   * Pin Turbopack's project root to this directory. Without this, Next 16 +
+   * Turbopack walks up the filesystem looking for the nearest lockfile and
+   * warns "we inferred your workspace root" — and worse, the standalone
+   * emit path becomes `.next/standalone/<absolute path>/...` instead of
+   * `.next/standalone/<projectRoot>/...`, which makes the Dockerfile paths
+   * brittle. The root MUST be absolute (Turbopack complains otherwise);
+   * `process.cwd()` is reliable because `next build` is always invoked from
+   * the project root in both local dev and CI.
    */
   turbopack: {
-    root: ".",
+    root: path.resolve(process.cwd(), "."),
   },
 };
 
