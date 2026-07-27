@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useAppStore } from "@/context/store";
+import { messagesService } from "@/services/messages.service";
+import { realtime } from "@/services/realtime.service";
+import { authService } from "@/services/auth.service";
+import { getErrorMessage } from "@/lib/axios";
 import {
   LayoutDashboard,
   Package,
@@ -28,14 +33,120 @@ const MENU_ITEMS = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const pathname = usePathname();
-  const { messages } = useAppStore();
+  const { messages: _legacyMessages } = useAppStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
-  const unreadCount = messages.filter((m) => !m.read).length;
+  /**
+   * Client-side auth gate. The Next middleware also guards `/admin/*` server
+   * side, but this catches the corner case where someone hot-reloads the
+   * page after clearing localStorage in DevTools, or where the cookie and
+   * localStorage drift out of sync.
+   *
+   * The gate runs only on the client; on the very first render we don't yet
+   * know the storage state (SSR has no `window`), so we wait one tick before
+   * deciding to redirect.
+   */
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      const target = `/login?from=${encodeURIComponent(pathname)}`;
+      router.replace(target);
+      return;
+    }
+    setAuthChecked(true);
+  }, [pathname, router]);
+
+  /**
+   * Live unread badge count from `/admin/messages/unread-count`.
+   * Refreshes on mount and whenever the user navigates within the dashboard
+   * (so a freshly-read message in /admin/messages updates the bell).
+   */
+  const refreshUnread = useCallback(async () => {
+    try {
+      const count = await messagesService.unreadCount();
+      setUnreadCount(count);
+    } catch (err) {
+      // Silent failure — the badge just won't update. Avoid spamming the user
+      // with errors from a non-critical decoration.
+      // eslint-disable-next-line no-console
+      console.warn("Could not refresh unread count:", getErrorMessage(err));
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUnread();
+  }, [refreshUnread, pathname]);
+
+  /**
+   * Open the realtime socket once the user is authenticated, keep the bell
+   * badge + Sonner toasts in sync with backend events, and tear the
+   * connection down on logout / unmount.
+   */
+  useEffect(() => {
+    const token = authService.getStoredToken();
+    if (!token) return;
+
+    const socket = realtime.connect(token);
+
+    const offNew = realtime.onNewMessage((payload) => {
+      // Bump the badge locally so it updates instantly without re-fetching
+      // the unread-count endpoint.
+      setUnreadCount((prev) => prev + 1);
+      const name = `${payload.firstName} ${payload.lastName}`.trim() || "Someone";
+      toast.success(`New message from ${name}`, {
+        description: payload.message.length > 80
+          ? `${payload.message.slice(0, 80)}…`
+          : payload.message,
+        action: {
+          label: "Open",
+          onClick: () => {
+            window.location.href = "/admin/messages";
+          },
+        },
+      });
+    });
+
+    const offUpdated = realtime.onMessageUpdated((payload) => {
+      // If the message just became read, drop the count; if it became
+      // unread again, bump it. This mirrors the backend's source of truth.
+      setUnreadCount((prev) => prev + (payload.isRead ? -1 : 1));
+    });
+
+    const offDeleted = realtime.onMessageDeleted(() => {
+      // Best effort: re-sync from the server so we never over-count after a
+      // delete (the optimistic decrement below would otherwise be wrong if
+      // the deleted message was already read).
+      refreshUnread();
+    });
+
+    const handleConnect = () => {
+      // Quietly re-sync once we're sure the socket is authenticated so the
+      // badge reflects the latest server state (covers cases where the bell
+      // was stale before the socket came up).
+      refreshUnread();
+    };
+
+    socket.on("connect", handleConnect);
+
+    return () => {
+      offNew();
+      offUpdated();
+      offDeleted();
+      socket.off("connect", handleConnect);
+      realtime.disconnect();
+    };
+  }, [refreshUnread]);
 
   const handleLogout = () => {
-    window.location.href = "/admin/login";
+    // Drop the realtime connection first so the server doesn't keep emitting
+    // to a dead admin, then wipe local credentials and bounce to /login.
+    realtime.disconnect();
+    authService.clearSession();
+    window.location.href = "/login";
   };
 
   const getPageTitle = () => {
@@ -52,6 +163,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     month: "short",
     day: "numeric",
   });
+
+  // Render a neutral placeholder while we verify the session on the client.
+  // The middleware handles the SSR case; this just covers the brief window
+  // between hydration and the auth check so we don't flash the nav bar.
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen w-full bg-[#020310] flex items-center justify-center">
+        <span className="font-satoshi text-xs text-slate-500">Loading…</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-[#020310] flex text-white font-sans relative overflow-x-hidden">
@@ -75,7 +197,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* SIDEBAR NAVIGATION (Desktop & Drawer) */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 bg-[#070914] border-r border-white/5 flex flex-col justify-between py-6 px-5 z-50 transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 w-64 h-screen bg-[#070914] border-r border-white/5 flex flex-col pt-6 pb-0 px-5 z-50 transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:block"
         }`}
       >
@@ -120,16 +242,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
 
-        {/* Sidebar Footer (Profile / Logout) */}
-        <div className="flex flex-col gap-4 border-t border-white/5 pt-5">
-          {/* Live Website Link */}
-          <a
-            href="/"
-            className="flex items-center justify-between text-xs text-slate-400 hover:text-white transition-colors pl-2"
-          >
-            <span>View Live Site</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+        {/* Sidebar Footer (Profile / Logout) — anchored to the bottom with extra breathing room */}
+        <div className="mt-auto flex flex-col gap-4 border-t border-white/5 pt-5 pb-24">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-2">
+            Session
+          </span>
 
           {/* Profile Card */}
           <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
@@ -148,6 +265,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Logout Button */}
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center justify-center gap-2.5 w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 hover:border-red-500/20 text-red-400 hover:text-red-300 font-heading font-normal text-xs py-3 rounded-xl transition-all"
           >
@@ -195,6 +313,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </span>
               )}
             </Link>
+
+            {/* View Live Site — opens the public storefront in a new tab */}
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View Live Site"
+              aria-label="View Live Site"
+              className="group relative w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-[#0080ff]/40 text-slate-300 hover:text-white transition-all duration-300 hover:shadow-[0_0_14px_rgba(0,128,255,0.18)]"
+            >
+              <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-[#0080ff] transition-colors" />
+            </a>
 
             {/* User Badge */}
             <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl pl-2 pr-3 py-1 shrink-0">
