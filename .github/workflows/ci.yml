@@ -20,13 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # `next build` produces a production bundle regardless, but pinning
-      # NODE_ENV=production here silences Next's "non-standard NODE_ENV"
-      # warning and matches the runtime NODE_ENV so React prerenders the
-      # same tree it serves at request time.
       NODE_ENV: production
-      # Mock value so the inlined `NEXT_PUBLIC_*` build-time variable has
-      # something to consume. The Docker job overrides this for itself.
       NEXT_PUBLIC_API_BASE_URL: https://kinetiq-api.saikat.com.bd/api/v1
       NEXT_TELEMETRY_DISABLED: '1'
 
@@ -41,11 +35,6 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        # `npm ci` honors `NODE_ENV=production` and silently drops
-        # devDependencies, but Turbopack needs `@tailwindcss/postcss` (a
-        # devDependency) at build time to run the PostCSS transform on
-        # `globals.css` and `lenis/dist/lenis.css`. `--include=dev` forces
-        # the full install regardless of NODE_ENV.
         run: npm ci --include=dev
 
       - name: Build
@@ -94,10 +83,6 @@ jobs:
         with:
           context: .
           target: runner
-          # The Dockerfile bakes the public API base URL at build time via
-          # `ARG NEXT_PUBLIC_API_BASE_URL`. Default to the production URL so
-          # a fresh `main` build keeps working out of the box; override with
-          # the `NEXT_PUBLIC_API_BASE_URL` repo variable for staging mirrors.
           build-args: |
             NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL || 'https://kinetiq-api.saikat.com.bd/api/v1' }}
           push: true
@@ -105,3 +90,61 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy web to ${{ vars.DEPLOY_HOST || secrets.SSH_HOST }}
+    needs: docker
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/master' ||
+       startsWith(github.ref, 'refs/tags/'))
+
+    steps:
+      - name: Install Cloudflared
+        run: |
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          cloudflared --version
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/server.ssh
+          chmod 600 ~/.ssh/server.ssh
+          # `ssh-keyscan` over the Cloudflare-tunnelled host typically fails
+          # (the bastion intercepts the handshake), so we set
+          # `StrictHostKeyChecking no` and route known_hosts to /dev/null in
+          # the SSH config below instead of trusting on first use here.
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Setup SSH Config
+        run: |
+          cat >> ~/.ssh/config << 'EOF'
+          Host server
+              HostName ${{ secrets.VPS_HOST }}
+              User ${{ secrets.VPS_USER }}
+              ProxyCommand cloudflared access ssh --hostname ${{ secrets.VPS_HOST }}
+              IdentityFile ~/.ssh/server.ssh
+              StrictHostKeyChecking no
+              LogLevel QUIET
+              RequestTTY no
+              UserKnownHostsFile /dev/null
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Test SSH Connection
+        run: ssh -q server 'echo "SSH connection successful"'
+
+      - name: Deploy via SSH
+        run: |
+          set -euo pipefail
+          ssh server 'cd /home/saikat/apps/kinetiq && \
+            echo "==> Pulling latest '"'"'web'"'"' image from Docker Hub..." && \
+            docker compose pull web && \
+            echo "==> Recreating '"'"'web'"'"' container with the new image..." && \
+            docker compose down web && \
+            docker compose up -d web && \
+            echo "==> '"'"'web'"'"' container status:" && \
+            docker compose ps web'
