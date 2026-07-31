@@ -105,8 +105,6 @@ const FALLBACK_PRODUCTS: Product[] = [
 const PRODUCT_CARD_SPOTLIGHT_CSS = `
   .product-card-item {
     position: relative;
-    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
-    transition: transform 0.15s ease-out;
     transform-style: preserve-3d;
   }
 `;
@@ -172,6 +170,8 @@ export default function ProductsListing() {
 
   useGSAP(
     () => {
+      gsap.set(".product-card-item", { transformPerspective: 1000 });
+
       gsap.fromTo(
         ".products-listing-header",
         { y: 25, opacity: 0 },
@@ -217,16 +217,28 @@ export default function ProductsListing() {
     const rotateX = (-(y - centerY) / centerY) * 8;
     const rotateY = ((x - centerX) / centerX) * 8;
     
-    card.style.setProperty("--rotate-x", `${rotateX}deg`);
-    card.style.setProperty("--rotate-y", `${rotateY}deg`);
+    gsap.to(card, {
+      rotateX: rotateX,
+      rotateY: rotateY,
+      transformPerspective: 1000,
+      duration: 0.25,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+    
     card.style.setProperty("--mouse-x", `${x}px`);
     card.style.setProperty("--mouse-y", `${y}px`);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
-    card.style.setProperty("--rotate-x", `0deg`);
-    card.style.setProperty("--rotate-y", `0deg`);
+    gsap.to(card, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.5,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
   };
 
   return (

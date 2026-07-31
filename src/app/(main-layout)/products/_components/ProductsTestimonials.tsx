@@ -47,8 +47,6 @@ const PRODUCTS_TESTIMONIALS_SPOTLIGHT_CSS = `
   .testimonial-card-element {
     position: relative;
     overflow: hidden;
-    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
-    transition: transform 0.15s ease-out;
     transform-style: preserve-3d;
   }
   .testimonial-card-element::before {
@@ -120,9 +118,11 @@ export default function ProductsTestimonials() {
   };
 
   useGSAP(() => {
+    gsap.set(".testimonial-card-element", { transformPerspective: 1000 });
+
     gsap.fromTo(
       ".testimonials-header-block",
-      { y: 35, opacity: 0 },
+      { y: 40, opacity: 0 },
       {
         y: 0,
         opacity: 1,
@@ -131,23 +131,22 @@ export default function ProductsTestimonials() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top 80%",
-        },
+        }
       }
     );
 
     gsap.fromTo(
-      ".testimonial-card-element",
-      { y: 45, opacity: 0 },
+      ".testimonial-slider-track-container",
+      { y: 50, opacity: 0 },
       {
         y: 0,
         opacity: 1,
-        duration: 0.8,
-        stagger: 0.08,
+        duration: 0.9,
         ease: "power3.out",
         scrollTrigger: {
-          trigger: ".testimonial-slider-track-container",
-          start: "top 85%",
-        },
+          trigger: containerRef.current,
+          start: "top 75%",
+        }
       }
     );
   }, { scope: containerRef });
@@ -163,16 +162,28 @@ export default function ProductsTestimonials() {
     const rotateX = (-(y - centerY) / centerY) * 8;
     const rotateY = ((x - centerX) / centerX) * 8;
     
-    card.style.setProperty("--rotate-x", `${rotateX}deg`);
-    card.style.setProperty("--rotate-y", `${rotateY}deg`);
+    gsap.to(card, {
+      rotateX: rotateX,
+      rotateY: rotateY,
+      transformPerspective: 1000,
+      duration: 0.25,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+    
     card.style.setProperty("--mouse-x", `${x}px`);
     card.style.setProperty("--mouse-y", `${y}px`);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
-    card.style.setProperty("--rotate-x", `0deg`);
-    card.style.setProperty("--rotate-y", `0deg`);
+    gsap.to(card, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.5,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
   };
 
   // Slide track calculations
@@ -255,7 +266,7 @@ export default function ProductsTestimonials() {
         </div>
 
         {/* Testimonials Slider viewport */}
-        <div className="testimonial-slider-track-container w-full overflow-hidden">
+        <div className="testimonial-slider-track-container w-full overflow-hidden py-6 -my-6 px-2 -mx-2">
           <div
             className="flex transition-transform duration-500 ease-out"
             style={{

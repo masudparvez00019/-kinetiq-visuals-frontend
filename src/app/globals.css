@@ -181,3 +181,36 @@
   font-family: 'PP Monument Extended', 'Monument Extended', var(--font-syne-google), sans-serif;
 }
 
+/* Admin Dashboard Light Mode Theme Overrides */
+.admin-theme-light {
+  color-scheme: light;
+}
+
+.admin-theme-light input,
+.admin-theme-light select,
+.admin-theme-light textarea {
+  color: #0f172a;
+}
+
+.admin-theme-light input::placeholder,
+.admin-theme-light textarea::placeholder {
+  color: #94a3b8;
+}
+
+.admin-theme-light .bg-\[\#070914\],
+.admin-theme-light .bg-\[\#0a0d1a\] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.admin-theme-light .bg-\[\#0c1330\] {
+  background-color: #eff6ff !important;
+  color: #1e3a8a !important;
+}
+
+.admin-theme-light .border-white\/5,
+.admin-theme-light .border-white\/10 {
+  border-color: #e2e8f0 !important;
+}
+
+

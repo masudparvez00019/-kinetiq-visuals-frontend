@@ -43,6 +43,9 @@ export default function Navbar() {
       return;
     }
 
+    // Reset activeSection when entering the homepage
+    setActiveSection("");
+
     // Set up section intersection observer for home page scroll tracking
     const sections = ["hero", "services", "works", "process"];
     const observerOptions = {
@@ -94,24 +97,16 @@ export default function Navbar() {
       <div
         className={`mx-auto flex items-center justify-between transition-all duration-500 relative z-50 overflow-hidden ${
           isScrolled
-            ? "max-w-5xl px-6 md:px-8 py-3 rounded-full border border-white/20 bg-gradient-to-b from-white/[0.12] via-white/[0.04] to-black/40 backdrop-blur-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),_inset_0_-1px_1px_rgba(0,0,0,0.5),_0_16px_40px_rgba(0,0,0,0.6)]"
+            ? "max-w-7xl w-full px-6 md:px-8 py-3 rounded-2xl border border-white/15 bg-[#060913]/45 backdrop-blur-3xl shadow-[0_12px_32px_rgba(0,0,0,0.3)]"
             : "max-w-7xl w-full px-0 py-0 rounded-none border border-transparent bg-transparent backdrop-blur-none shadow-none"
         }`}
       >
-        {/* Top 3D Specular Shiny Edge Highlight (Only when scrolled) */}
-        {isScrolled && (
-          <>
-            <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none z-10" />
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-t-full" />
-          </>
-        )}
-
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group relative z-20">
           <span
             className={`font-logo font-normal tracking-normal leading-none text-white uppercase transition-all duration-500 ease-in-out ${
               isScrolled
-                ? "text-xl md:text-2xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                ? "text-xl md:text-2xl"
                 : "text-2xl md:text-[36px]"
             }`}
           >
@@ -122,53 +117,53 @@ export default function Navbar() {
         {/* Desktop Navigation & CTA */}
         <div className="flex items-center relative z-20">
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             <Link
               href="/#services"
-              className={`font-satoshi font-bold text-sm md:text-[16px] leading-[24px] tracking-normal px-4 py-1.5 rounded-full border transition-all duration-300 ${
+              className={`font-satoshi text-sm md:text-[15px] leading-tight tracking-normal px-4 py-2 transition-all duration-300 ${
                 activeSection === "services"
-                  ? "border-white/35 text-white bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),_0_4px_16px_rgba(0,128,255,0.25)] backdrop-blur-md"
-                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  ? "bg-white text-black font-bold rounded-xl shadow-lg hover:bg-slate-100"
+                  : "font-medium text-slate-300 hover:text-white"
               }`}
             >
               Services
             </Link>
             <Link
               href="/#works"
-              className={`font-satoshi font-bold text-sm md:text-[16px] leading-[24px] tracking-normal px-4 py-1.5 rounded-full border transition-all duration-300 ${
+              className={`font-satoshi text-sm md:text-[15px] leading-tight tracking-normal px-4 py-2 transition-all duration-300 ${
                 activeSection === "works"
-                  ? "border-white/35 text-white bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),_0_4px_16px_rgba(0,128,255,0.25)] backdrop-blur-md"
-                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  ? "bg-white text-black font-bold rounded-xl shadow-lg hover:bg-slate-100"
+                  : "font-medium text-slate-300 hover:text-white"
               }`}
             >
               Works
             </Link>
             <Link
               href="/#process"
-              className={`font-satoshi font-bold text-sm md:text-[16px] leading-[24px] tracking-normal px-4 py-1.5 rounded-full border transition-all duration-300 ${
+              className={`font-satoshi text-sm md:text-[15px] leading-tight tracking-normal px-4 py-2 transition-all duration-300 ${
                 activeSection === "process"
-                  ? "border-white/35 text-white bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),_0_4px_16px_rgba(0,128,255,0.25)] backdrop-blur-md"
-                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  ? "bg-white text-black font-bold rounded-xl shadow-lg hover:bg-slate-100"
+                  : "font-medium text-slate-300 hover:text-white"
               }`}
             >
               Process
             </Link>
             <Link
               href="/products"
-              className={`font-satoshi font-bold text-sm md:text-[16px] leading-[24px] tracking-normal px-4 py-1.5 rounded-full border transition-all duration-300 ${
+              className={`font-satoshi text-sm md:text-[15px] leading-tight tracking-normal px-4 py-2 transition-all duration-300 ${
                 activeSection === "products"
-                  ? "border-white/35 text-white bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),_0_4px_16px_rgba(0,128,255,0.25)] backdrop-blur-md"
-                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  ? "bg-white text-black font-bold rounded-xl shadow-lg hover:bg-slate-100"
+                  : "font-medium text-slate-300 hover:text-white"
               }`}
             >
               Products
             </Link>
             <Link
               href="/course"
-              className={`font-satoshi font-bold text-sm md:text-[16px] leading-[24px] tracking-normal px-4 py-1.5 rounded-full border transition-all duration-300 ${
+              className={`font-satoshi text-sm md:text-[15px] leading-tight tracking-normal px-4 py-2 transition-all duration-300 ${
                 activeSection === "course"
-                  ? "border-white/35 text-white bg-gradient-to-b from-white/25 via-white/10 to-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),_0_4px_16px_rgba(0,128,255,0.25)] backdrop-blur-md"
-                  : "border-transparent text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  ? "bg-white text-black font-bold rounded-xl shadow-lg hover:bg-slate-100"
+                  : "font-medium text-slate-300 hover:text-white"
               }`}
             >
               Course

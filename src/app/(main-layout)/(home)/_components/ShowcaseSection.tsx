@@ -58,7 +58,7 @@ export default function ShowcaseSection() {
       // Fade play button in
       gsap.to(".play-overlay-btn", { scale: 1, opacity: 1, duration: 0.3 });
     } else {
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
       setIsPlaying(true);
       // Shrink play button out
       gsap.to(".play-overlay-btn", { scale: 0.8, opacity: 0, duration: 0.3 });

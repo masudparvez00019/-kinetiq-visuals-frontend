@@ -66,7 +66,7 @@ export default function ProductsPreview() {
       setIsPlaying(false);
       gsap.to(".play-overlay-btn", { scale: 1, opacity: 1, duration: 0.3 });
     } else {
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
       setIsPlaying(true);
       gsap.to(".play-overlay-btn", { scale: 0.8, opacity: 0, duration: 0.3 });
     }

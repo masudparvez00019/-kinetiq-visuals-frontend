@@ -69,12 +69,12 @@ export default function TrustedBy() {
       <div className="absolute top-0 left-0 w-24 md:w-48 h-full bg-gradient-to-r from-[#020205] to-transparent z-10 pointer-events-none" />
       <div className="absolute top-0 right-0 w-24 md:w-48 h-full bg-gradient-to-l from-[#020205] to-transparent z-10 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-10">
-        <h2 className="font-syne font-bold text-[20px] md:text-2xl text-white text-center tracking-normal leading-8 md:leading-[32px]">
+      <div className="w-full flex flex-col items-center gap-10">
+        <h2 className="font-syne font-bold text-[20px] md:text-2xl text-white text-center tracking-normal leading-8 md:leading-[32px] px-6">
           Recent clients & partners
         </h2>
 
-        {/* Marquee Container */}
+        {/* Marquee Container (Full Width Edge to Edge) */}
         <div className="w-full overflow-hidden relative flex marquee-container">
           {/* Loop twice to make it seamless with shrink-0 and w-max to prevent overlapping */}
           <div className="flex gap-16 md:gap-24 animate-marquee whitespace-nowrap items-center py-2 shrink-0 w-max pr-16 md:pr-24">

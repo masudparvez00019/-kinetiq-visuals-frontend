@@ -27,6 +27,7 @@ import type {
   CreateChapterPayload,
   UpdateChapterPayload,
 } from "@/types/course";
+import { useAdminTheme } from "@/context/admin-theme-context";
 
 type FormState = {
   number: string;
@@ -44,18 +45,20 @@ const EMPTY_FORM: FormState = {
   isPublished: true,
 };
 
-/** Suggest a sensible next display number (zero-padded) given the current list. */
-function suggestNextNumber(chapters: CourseChapter[]): string {
-  // Strip any non-digits and pick the max integer we've seen, then +1.
-  const used = chapters
+const suggestNextNumber = (chapters: CourseChapter[]): string => {
+  if (chapters.length === 0) return "01";
+  const nums = chapters
     .map((c) => parseInt(c.number, 10))
     .filter((n) => !Number.isNaN(n));
-  const next = (used.length ? Math.max(...used) : 0) + 1;
-  return String(next).padStart(2, "0");
-}
+  if (nums.length === 0) return String(chapters.length + 1).padStart(2, "0");
+  const max = Math.max(...nums);
+  return String(max + 1).padStart(2, "0");
+};
 
 export default function AdminCoursePage() {
   const router = useRouter();
+  const { theme } = useAdminTheme();
+  const isLight = theme === "light";
 
   // Data
   const [chapters, setChapters] = useState<CourseChapter[]>([]);
@@ -67,7 +70,7 @@ export default function AdminCoursePage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [reordering, setReordering] = useState(false);
+  const [_reordering, setReordering] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   const fetchChapters = useCallback(async () => {
@@ -193,8 +196,6 @@ export default function AdminCoursePage() {
     try {
       await chaptersService.remove(c.id);
       toast.success(`Chapter ${c.number} deleted`);
-      // Optimistically remove from the local list so the table re-renders
-      // immediately; if the next refresh fails the user will see the error.
       setChapters((prev) => prev.filter((x) => x.id !== c.id));
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not delete the chapter."));
@@ -205,7 +206,6 @@ export default function AdminCoursePage() {
 
   const handleTogglePublished = async (c: CourseChapter) => {
     const next = !c.isPublished;
-    // Optimistic local flip so the badge updates instantly.
     setChapters((prev) =>
       prev.map((x) => (x.id === c.id ? { ...x, isPublished: next } : x)),
     );
@@ -215,17 +215,15 @@ export default function AdminCoursePage() {
         next ? `Chapter ${c.number} published` : `Chapter ${c.number} hidden`,
       );
     } catch (err) {
-      // Roll back and re-fetch to stay in sync with the server.
       setChapters((prev) =>
         prev.map((x) => (x.id === c.id ? { ...x, isPublished: c.isPublished } : x)),
       );
-      toast.error(getErrorMessage(err, "Could not update chapter visibility."));
+      toast.error(getErrorMessage(err, "Could not update status."));
     }
   };
 
-  /** Move a chapter up/down in the local list, then persist the new order. */
-  const moveChapter = async (index: number, direction: -1 | 1) => {
-    const target = index + direction;
+  const handleMove = async (index: number, direction: "up" | "down") => {
+    const target = direction === "up" ? index - 1 : index + 1;
     if (target < 0 || target >= chapters.length) return;
     setReordering(true);
     const next = [...chapters];
@@ -236,15 +234,12 @@ export default function AdminCoursePage() {
       await chaptersService.reorder(next.map((c) => c.id));
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save the new order."));
-      // Re-sync from the server so the table reflects truth.
       await fetchChapters();
     } finally {
       setReordering(false);
     }
   };
 
-  // Surface any server fetch error as a banner so the user knows the table
-  // contents may be stale; the toast in handlers covers transient ones.
   const totalCount = useMemo(() => chapters.length, [chapters]);
   const publishedCount = useMemo(
     () => chapters.filter((c) => c.isPublished).length,
@@ -256,10 +251,14 @@ export default function AdminCoursePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white">
+          <h1 className={`font-heading font-normal text-2xl md:text-3xl ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             Manage Course
           </h1>
-          <p className="font-satoshi text-xs text-slate-500 font-light">
+          <p className={`font-satoshi text-xs font-light ${
+            isLight ? "text-slate-500" : "text-slate-400"
+          }`}>
             Update, structure, and edit the chapters and curriculum of the
             Cinematic Video Editing Course.
           </p>
@@ -269,7 +268,11 @@ export default function AdminCoursePage() {
             type="button"
             onClick={fetchChapters}
             disabled={loading}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50"
+            className={`flex items-center gap-2 font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50 border ${
+              isLight
+                ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-xs"
+                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white"
+            }`}
             aria-label="Refresh chapters"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -278,7 +281,7 @@ export default function AdminCoursePage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-2 bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-xs px-5 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(0,128,255,0.25)]"
+            className="flex items-center gap-2 bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-xs px-5 py-3 rounded-xl transition-all shadow-md"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Chapter
@@ -288,24 +291,30 @@ export default function AdminCoursePage() {
 
       {/* Stats strip */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 bg-[#070914] border border-white/5 rounded-xl px-4 py-2.5">
+        <div className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 ${
+          isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5"
+        }`}>
           <GraduationCap className="w-3.5 h-3.5 text-[#0080ff]" />
-          <span className="font-satoshi text-[11px] text-slate-400">
-            <span className="font-semibold text-white">{totalCount}</span>{" "}
+          <span className={`font-satoshi text-[11px] ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+            <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{totalCount}</span>{" "}
             chapter{totalCount === 1 ? "" : "s"}
           </span>
         </div>
-        <div className="flex items-center gap-2 bg-[#070914] border border-white/5 rounded-xl px-4 py-2.5">
-          <Eye className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="font-satoshi text-[11px] text-slate-400">
-            <span className="font-semibold text-white">{publishedCount}</span>{" "}
+        <div className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 ${
+          isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5"
+        }`}>
+          <Eye className="w-3.5 h-3.5 text-emerald-500" />
+          <span className={`font-satoshi text-[11px] ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+            <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{publishedCount}</span>{" "}
             published
           </span>
         </div>
-        <div className="flex items-center gap-2 bg-[#070914] border border-white/5 rounded-xl px-4 py-2.5">
+        <div className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 ${
+          isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5"
+        }`}>
           <EyeOff className="w-3.5 h-3.5 text-slate-400" />
-          <span className="font-satoshi text-[11px] text-slate-400">
-            <span className="font-semibold text-white">
+          <span className={`font-satoshi text-[11px] ${isLight ? "text-slate-600" : "text-slate-400"}`}>
+            <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
               {totalCount - publishedCount}
             </span>{" "}
             hidden
@@ -324,11 +333,17 @@ export default function AdminCoursePage() {
       )}
 
       {/* Chapters List Table */}
-      <div className="bg-[#070914] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+      <div className={`border rounded-2xl overflow-hidden ${
+        isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5 shadow-lg"
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5 bg-[#0a0d1a]/50 text-slate-400 font-satoshi text-[10px] uppercase tracking-wider font-semibold">
+              <tr className={`border-b font-satoshi text-[10px] uppercase tracking-wider font-semibold ${
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-600"
+                  : "border-white/5 bg-[#0a0d1a]/50 text-slate-400"
+              }`}>
                 <th className="px-6 py-4 w-16">No.</th>
                 <th className="px-6 py-4">Chapter Title</th>
                 <th className="px-6 py-4">Lessons / Info</th>
@@ -337,7 +352,7 @@ export default function AdminCoursePage() {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className={`divide-y ${isLight ? "divide-slate-200/80" : "divide-white/5"}`}>
               {loading &&
                 Array.from({ length: 4 }).map((_, i) => (
                   <tr key={`skel-${i}`} className="animate-pulse">
@@ -378,8 +393,8 @@ export default function AdminCoursePage() {
                         <div className="flex flex-col -gap-1">
                           <button
                             type="button"
-                            onClick={() => moveChapter(idx, -1)}
-                            disabled={idx === 0 || reordering}
+                            onClick={() => handleMove(idx, "up")}
+                            disabled={idx === 0 || _reordering}
                             className="w-5 h-4 flex items-center justify-center text-slate-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                             title="Move up"
                             aria-label={`Move chapter ${c.number} up`}
@@ -388,8 +403,8 @@ export default function AdminCoursePage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => moveChapter(idx, 1)}
-                            disabled={idx === chapters.length - 1 || reordering}
+                            onClick={() => handleMove(idx, "down")}
+                            disabled={idx === chapters.length - 1 || _reordering}
                             className="w-5 h-4 flex items-center justify-center text-slate-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                             title="Move down"
                             aria-label={`Move chapter ${c.number} down`}
@@ -500,7 +515,7 @@ export default function AdminCoursePage() {
 
       {/* ADD / EDIT DRAWER */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[100] flex justify-end">
           <div
             onClick={closeForm}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"

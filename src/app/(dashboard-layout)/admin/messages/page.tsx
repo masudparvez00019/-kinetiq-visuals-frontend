@@ -25,6 +25,7 @@ import type {
   ContactMessage,
   PaginatedMessages,
 } from "@/types/message";
+import { useAdminTheme } from "@/context/admin-theme-context";
 
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString("en-US", {
@@ -46,6 +47,8 @@ type ReadFilter = "all" | "unread" | "read";
 
 export default function AdminMessagesPage() {
   const router = useRouter();
+  const { theme } = useAdminTheme();
+  const isLight = theme === "light";
 
   // Data
   const [paginated, setPaginated] = useState<PaginatedMessages | null>(null);
@@ -57,7 +60,7 @@ export default function AdminMessagesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [readFilter, setReadFilter] = useState<ReadFilter>("all");
   const [page, setPage] = useState(1);
-  const pageSize = 15;
+  const pageSize = 10;
 
   // UI state
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
@@ -69,7 +72,7 @@ export default function AdminMessagesPage() {
     const t = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
       setPage(1);
-    }, 350);
+    }, 300);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
@@ -86,10 +89,12 @@ export default function AdminMessagesPage() {
     setLoading(true);
     setError(null);
     try {
-      const params: ListMessagesParams = { page, limit: pageSize };
-      if (debouncedSearch) params.q = debouncedSearch;
-      if (readFilter === "unread") params.isRead = false;
-      if (readFilter === "read") params.isRead = true;
+      const params: ListMessagesParams = { 
+        page, 
+        limit: pageSize,
+        q: debouncedSearch || undefined,
+        isRead: readFilter === "unread" ? false : readFilter === "read" ? true : undefined,
+      };
       const data = await messagesService.list(params);
       setPaginated(data);
     } catch (err) {
@@ -111,35 +116,23 @@ export default function AdminMessagesPage() {
   const messages = paginated?.data ?? [];
   const totalPages = paginated?.totalPages ?? 1;
 
-  const openMessage = async (msg: ContactMessage) => {
-    setSelectedMessage(msg);
-    if (!msg.isRead) {
-      // Optimistic update so the row immediately looks "read" in the list.
-      setPaginated((prev) =>
-        prev
-          ? {
-              ...prev,
-              data: prev.data.map((m) =>
-                m.id === msg.id ? { ...m, isRead: true } : m,
-              ),
-            }
-          : prev,
-      );
+  const handleOpenMessage = async (m: ContactMessage) => {
+    setSelectedMessage(m);
+    if (!m.isRead) {
+      setUpdatingRead(true);
       try {
-        setUpdatingRead(true);
-        await messagesService.setReadState(msg.id, true);
-      } catch {
-        // Rollback on failure
+        const updated = await messagesService.setReadState(m.id, true);
+        setSelectedMessage(updated);
         setPaginated((prev) =>
           prev
             ? {
                 ...prev,
-                data: prev.data.map((m) =>
-                  m.id === msg.id ? { ...m, isRead: false } : m,
-                ),
+                data: prev.data.map((x) => (x.id === m.id ? updated : x)),
               }
             : prev,
         );
+      } catch (err) {
+        console.warn("Could not mark message read:", getErrorMessage(err));
       } finally {
         setUpdatingRead(false);
       }
@@ -148,37 +141,24 @@ export default function AdminMessagesPage() {
 
   const closeMessage = () => setSelectedMessage(null);
 
-  const toggleReadState = async (msg: ContactMessage) => {
+  const handleToggleRead = async (m: ContactMessage, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const nextState = !m.isRead;
     setUpdatingRead(true);
-    const next = !msg.isRead;
-    // Optimistic
-    setPaginated((prev) =>
-      prev
-        ? {
-            ...prev,
-            data: prev.data.map((m) =>
-              m.id === msg.id ? { ...m, isRead: next } : m,
-            ),
-          }
-        : prev,
-    );
-    if (selectedMessage?.id === msg.id) {
-      setSelectedMessage({ ...msg, isRead: next });
-    }
     try {
-      await messagesService.setReadState(msg.id, next);
-    } catch (err) {
-      // Rollback
+      const updated = await messagesService.setReadState(m.id, nextState);
+      if (selectedMessage?.id === m.id) {
+        setSelectedMessage(updated);
+      }
       setPaginated((prev) =>
         prev
           ? {
               ...prev,
-              data: prev.data.map((m) =>
-                m.id === msg.id ? { ...m, isRead: msg.isRead } : m,
-              ),
+              data: prev.data.map((x) => (x.id === m.id ? updated : x)),
             }
           : prev,
       );
+    } catch (err) {
       setError(getErrorMessage(err, "Could not update message."));
     } finally {
       setUpdatingRead(false);
@@ -191,7 +171,6 @@ export default function AdminMessagesPage() {
     try {
       await messagesService.remove(id);
       if (selectedMessage?.id === id) setSelectedMessage(null);
-      // Step back a page if we just removed the last item on this page.
       if (messages.length === 1 && page > 1) {
         setPage(page - 1);
       } else {
@@ -214,10 +193,10 @@ export default function AdminMessagesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white">
+          <h1 className={`font-heading font-normal text-2xl md:text-3xl ${isLight ? "text-slate-900" : "text-white"}`}>
             Inbox Messages
           </h1>
-          <p className="font-satoshi text-xs text-slate-500 font-light">
+          <p className={`font-satoshi text-xs font-light ${isLight ? "text-slate-500" : "text-slate-400"}`}>
             Review, read, and manage client inquiries submitted via the Contact Us form.
           </p>
         </div>
@@ -225,7 +204,11 @@ export default function AdminMessagesPage() {
           type="button"
           onClick={fetchMessages}
           disabled={loading}
-          className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50"
+          className={`flex items-center gap-2 font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50 border ${
+            isLight
+              ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-xs"
+              : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white"
+          }`}
           aria-label="Refresh messages"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -244,7 +227,9 @@ export default function AdminMessagesPage() {
       )}
 
       {/* Filter Row */}
-      <div className="flex flex-col sm:flex-row bg-[#070914] border border-white/5 rounded-xl p-3 items-stretch sm:items-center gap-3">
+      <div className={`flex flex-col sm:flex-row border rounded-xl p-3 items-stretch sm:items-center gap-3 ${
+        isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5"
+      }`}>
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -252,11 +237,17 @@ export default function AdminMessagesPage() {
             placeholder="Search name, email, or message..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0a0d1a] border border-white/5 rounded-lg pl-10 pr-4 py-2 font-satoshi text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/40"
+            className={`w-full border rounded-lg pl-10 pr-4 py-2 font-satoshi text-xs focus:outline-none focus:border-blue-500/40 ${
+              isLight
+                ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
+                : "bg-[#0a0d1a] border-white/5 text-white placeholder:text-slate-600"
+            }`}
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-[#0a0d1a] border border-white/5 rounded-lg p-1">
+        <div className={`flex items-center gap-1 border rounded-lg p-1 ${
+          isLight ? "bg-slate-100 border-slate-200" : "bg-[#0a0d1a] border-white/5"
+        }`}>
           {(["all", "unread", "read"] as ReadFilter[]).map((f) => (
             <button
               key={f}
@@ -264,14 +255,15 @@ export default function AdminMessagesPage() {
               onClick={() => setReadFilter(f)}
               className={`px-3 py-1.5 rounded-md font-satoshi text-[11px] font-semibold uppercase tracking-wider transition-all ${
                 readFilter === f
-                  ? "bg-[#0080ff] text-white"
+                  ? "bg-[#0080ff] text-white shadow-xs"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               }`}
             >
               {f}
               {f === "unread" && paginated && readFilter !== "unread" && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500/20 text-blue-400 text-[9px]">
-                  {/* Show local count only as a hint; total count comes from the API. */}
+                <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-500/20 text-[#0080ff] text-[9px] font-bold">
                   {messages.filter((m) => !m.isRead).length}
                 </span>
               )}
@@ -377,7 +369,7 @@ export default function AdminMessagesPage() {
                       <div className="flex items-center justify-end gap-2.5">
                         <button
                           type="button"
-                          onClick={() => openMessage(msg)}
+                          onClick={() => handleOpenMessage(msg)}
                           disabled={deletingId === msg.id}
                           className="w-8 h-8 rounded-lg bg-white/5 hover:bg-[#0080ff]/15 hover:text-[#0080ff] text-slate-400 flex items-center justify-center border border-white/5 transition-all disabled:opacity-40"
                           title="Read message"
@@ -450,9 +442,9 @@ export default function AdminMessagesPage() {
         )}
       </div>
 
-      {/* INSPECT MESSAGE MODAL */}
+      {/* MESSAGE VIEW MODAL */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-5">
           <div
             onClick={closeMessage}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -531,7 +523,7 @@ export default function AdminMessagesPage() {
             <div className="flex items-center gap-3 border-t border-white/5 pt-4 mt-2">
               <button
                 type="button"
-                onClick={() => toggleReadState(selectedMessage)}
+                onClick={() => handleToggleRead(selectedMessage)}
                 disabled={updatingRead}
                 className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-heading font-normal text-xs py-3.5 rounded-xl transition-all border border-white/5 disabled:opacity-50"
               >

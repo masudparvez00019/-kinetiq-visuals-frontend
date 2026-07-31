@@ -22,7 +22,10 @@ import {
   ExternalLink,
   Bell,
   Calendar as CalendarIcon,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { AdminThemeProvider, useAdminTheme } from "@/context/admin-theme-context";
 
 const MENU_ITEMS = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -32,23 +35,14 @@ const MENU_ITEMS = [
   { name: "Page Content", href: "/admin/content", icon: Settings },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { messages: _legacyMessages } = useAppStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const { theme, toggleTheme } = useAdminTheme();
 
-  /**
-   * Client-side auth gate. The Next middleware also guards `/admin/*` server
-   * side, but this catches the corner case where someone hot-reloads the
-   * page after clearing localStorage in DevTools, or where the cookie and
-   * localStorage drift out of sync.
-   *
-   * The gate runs only on the client; on the very first render we don't yet
-   * know the storage state (SSR has no `window`), so we wait one tick before
-   * deciding to redirect.
-   */
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -60,19 +54,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setAuthChecked(true);
   }, [pathname, router]);
 
-  /**
-   * Live unread badge count from `/admin/messages/unread-count`.
-   * Refreshes on mount and whenever the user navigates within the dashboard
-   * (so a freshly-read message in /admin/messages updates the bell).
-   */
   const refreshUnread = useCallback(async () => {
     try {
       const count = await messagesService.unreadCount();
       setUnreadCount(count);
     } catch (err) {
-      // Silent failure — the badge just won't update. Avoid spamming the user
-      // with errors from a non-critical decoration.
-      // eslint-disable-next-line no-console
       console.warn("Could not refresh unread count:", getErrorMessage(err));
     }
   }, []);
@@ -81,11 +67,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     refreshUnread();
   }, [refreshUnread, pathname]);
 
-  /**
-   * Open the realtime socket once the user is authenticated, keep the bell
-   * badge + Sonner toasts in sync with backend events, and tear the
-   * connection down on logout / unmount.
-   */
   useEffect(() => {
     const token = authService.getStoredToken();
     if (!token) return;
@@ -93,8 +74,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const socket = realtime.connect(token);
 
     const offNew = realtime.onNewMessage((payload) => {
-      // Bump the badge locally so it updates instantly without re-fetching
-      // the unread-count endpoint.
       setUnreadCount((prev) => prev + 1);
       const name = `${payload.firstName} ${payload.lastName}`.trim() || "Someone";
       toast.success(`New message from ${name}`, {
@@ -111,22 +90,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
 
     const offUpdated = realtime.onMessageUpdated((payload) => {
-      // If the message just became read, drop the count; if it became
-      // unread again, bump it. This mirrors the backend's source of truth.
       setUnreadCount((prev) => prev + (payload.isRead ? -1 : 1));
     });
 
     const offDeleted = realtime.onMessageDeleted(() => {
-      // Best effort: re-sync from the server so we never over-count after a
-      // delete (the optimistic decrement below would otherwise be wrong if
-      // the deleted message was already read).
       refreshUnread();
     });
 
     const handleConnect = () => {
-      // Quietly re-sync once we're sure the socket is authenticated so the
-      // badge reflects the latest server state (covers cases where the bell
-      // was stale before the socket came up).
       refreshUnread();
     };
 
@@ -142,8 +113,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [refreshUnread]);
 
   const handleLogout = () => {
-    // Drop the realtime connection first so the server doesn't keep emitting
-    // to a dead admin, then wipe local credentials and bounce to /login.
     realtime.disconnect();
     authService.clearSession();
     window.location.href = "/login";
@@ -164,52 +133,84 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     day: "numeric",
   });
 
-  // Render a neutral placeholder while we verify the session on the client.
-  // The middleware handles the SSR case; this just covers the brief window
-  // between hydration and the auth check so we don't flash the nav bar.
   if (!authChecked) {
     return (
-      <div className="min-h-screen w-full bg-[#020310] flex items-center justify-center">
-        <span className="font-satoshi text-xs text-slate-500">Loading…</span>
+      <div className={`min-h-screen w-full flex items-center justify-center ${
+        theme === "light" ? "bg-[#f8fafc] text-slate-600" : "bg-[#020310] text-slate-400"
+      }`}>
+        <span className="font-satoshi text-xs">Loading…</span>
       </div>
     );
   }
 
+  const isLight = theme === "light";
+
   return (
-    <div className="min-h-screen w-full bg-[#020310] flex text-white font-sans relative overflow-x-hidden">
+    <div className={`min-h-screen w-full flex font-sans relative overflow-x-hidden transition-colors duration-300 ${
+      isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#020310] text-white"
+    }`}>
       {/* Background glow overlay */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-[#0040cc]/10 blur-[130px] rounded-full" />
+        <div className={`absolute top-0 left-0 w-[400px] h-[400px] blur-[130px] rounded-full ${
+          isLight ? "bg-blue-400/10" : "bg-[#0040cc]/10"
+        }`} />
       </div>
 
       {/* MOBILE HEADER BAR */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#070914]/90 border-b border-white/5 backdrop-blur-md flex items-center justify-between px-5 z-40">
-        <span className="font-logo font-normal tracking-wide text-white uppercase text-xl">
+      <header className={`lg:hidden fixed top-0 left-0 right-0 h-16 border-b backdrop-blur-md flex items-center justify-between px-5 z-30 transition-colors duration-300 ${
+        isLight ? "bg-white/90 border-slate-200 text-slate-900" : "bg-[#070914]/90 border-white/5 text-white"
+      }`}>
+        <span className={`font-logo font-normal tracking-wide uppercase text-xl ${
+          isLight ? "text-slate-900" : "text-white"
+        }`}>
           KQ ADMIN
         </span>
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="text-slate-400 hover:text-white p-1"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={`Switch to ${isLight ? "Dark" : "Light"} Mode`}
+            aria-label="Toggle Theme"
+            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 ${
+              isLight
+                ? "bg-slate-100 border-slate-300 text-amber-600 hover:bg-slate-200"
+                : "bg-white/5 border-white/10 text-amber-400 hover:bg-white/10"
+            }`}
+          >
+            {isLight ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
+          </button>
+
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className={isLight ? "text-slate-600 hover:text-slate-900 p-1" : "text-slate-400 hover:text-white p-1"}
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       {/* SIDEBAR NAVIGATION (Desktop & Drawer) */}
       <aside
-        className={`fixed inset-y-0 left-0 w-64 h-screen bg-[#070914] border-r border-white/5 flex flex-col pt-6 pb-0 px-5 z-50 transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:block"
+        className={`fixed inset-y-0 left-0 w-64 h-screen border-r flex flex-col pt-6 pb-0 px-5 transition-all duration-300 lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0 z-50" : "-translate-x-full lg:block z-20"
+        } ${
+          isLight
+            ? "bg-white border-slate-200/80 text-slate-900 shadow-sm"
+            : "bg-[#070914] border-white/5 text-white"
         }`}
       >
         <div className="flex flex-col gap-8">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between">
-            <span className="font-logo font-normal tracking-normal text-white uppercase text-2xl">
+            <span className={`font-logo font-normal tracking-normal uppercase text-2xl ${
+              isLight ? "text-slate-900" : "text-white"
+            }`}>
               KQ VISUALS
             </span>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden text-slate-400 hover:text-white p-1"
+              className={isLight ? "lg:hidden text-slate-500 hover:text-slate-900 p-1" : "lg:hidden text-slate-400 hover:text-white p-1"}
             >
               <X className="w-5 h-5" />
             </button>
@@ -217,7 +218,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1.5">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-2 mb-2">
+            <span className={`text-[10px] font-bold uppercase tracking-widest pl-2 mb-2 ${
+              isLight ? "text-slate-400" : "text-slate-500"
+            }`}>
               Management
             </span>
             {MENU_ITEMS.map((item) => {
@@ -230,7 +233,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
                     isActive
-                      ? "bg-[#0080ff] text-white shadow-[0_0_20px_rgba(0,128,255,0.30)]"
+                      ? "bg-[#0080ff] text-white shadow-md font-bold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                       : "text-slate-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
@@ -242,22 +247,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
 
-        {/* Sidebar Footer (Profile / Logout) — anchored to the bottom with extra breathing room */}
-        <div className="mt-auto flex flex-col gap-4 border-t border-white/5 pt-5 pb-24">
-          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-2">
+        {/* Sidebar Footer (Profile / Logout) */}
+        <div className={`mt-auto flex flex-col gap-4 border-t pt-5 pb-24 ${
+          isLight ? "border-slate-200" : "border-white/5"
+        }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-widest pl-2 ${
+            isLight ? "text-slate-400" : "text-slate-500"
+          }`}>
             Session
           </span>
 
           {/* Profile Card */}
-          <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
+          <div className={`flex items-center gap-3 rounded-xl p-3 border ${
+            isLight
+              ? "bg-slate-100/70 border-slate-200/80 text-slate-900"
+              : "bg-white/5 border-white/5 text-white"
+          }`}>
             <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shrink-0">
               <User className="w-4 h-4 text-[#0080ff]" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-satoshi text-xs font-bold text-white truncate leading-tight">
+              <span className={`font-satoshi text-xs font-bold truncate leading-tight ${
+                isLight ? "text-slate-900" : "text-white"
+              }`}>
                 Jowel Mahmud
               </span>
-              <span className="font-satoshi text-[9px] text-slate-500 font-light truncate mt-0.5 leading-none">
+              <span className={`font-satoshi text-[9px] font-light truncate mt-0.5 leading-none ${
+                isLight ? "text-slate-500" : "text-slate-400"
+              }`}>
                 Founder & CEO
               </span>
             </div>
@@ -267,7 +284,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2.5 w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 hover:border-red-500/20 text-red-400 hover:text-red-300 font-heading font-normal text-xs py-3 rounded-xl transition-all"
+            className={`flex items-center justify-center gap-2.5 w-full font-heading font-normal text-xs py-3 rounded-xl transition-all ${
+              isLight
+                ? "bg-red-50 hover:bg-red-100 border border-red-200 text-red-600"
+                : "bg-red-500/10 hover:bg-red-500/20 border border-red-500/10 text-red-400"
+            }`}
           >
             <LogOut className="w-3.5 h-3.5" />
             Log Out
@@ -284,19 +305,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* MAIN VIEWPORT */}
-      <main className="flex-1 min-h-screen pt-16 lg:pt-0 lg:pl-64 flex flex-col relative z-10">
+      <main className="flex-1 min-h-screen pt-16 lg:pt-0 lg:pl-64 flex flex-col relative">
         
         {/* DESKTOP/LAPTOP TOP NAVBAR */}
-        <header className="w-full bg-[#070914]/40 border-b border-white/5 backdrop-blur-md sticky top-0 z-30 px-5 md:px-8 py-3.5 flex items-center justify-between">
+        <header className={`w-full border-b backdrop-blur-md sticky top-0 z-20 px-5 md:px-8 py-3.5 flex items-center justify-between transition-colors duration-300 ${
+          isLight
+            ? "bg-white/80 border-slate-200 text-slate-900 shadow-xs"
+            : "bg-[#070914]/40 border-white/5 text-white"
+        }`}>
           {/* Left: Active Section Title */}
-          <span className="font-satoshi text-xs md:text-sm font-bold text-white select-none">
+          <span className={`font-satoshi text-xs md:text-sm font-bold select-none ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             {getPageTitle()}
           </span>
 
           {/* Right: Quick Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            {/* Theme Switcher Button (Desktop) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${isLight ? "Dark" : "Light"} Mode`}
+              aria-label="Toggle Theme"
+              className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 ${
+                isLight
+                  ? "bg-slate-100 border-slate-200 text-slate-800 hover:bg-slate-200"
+                  : "bg-white/5 border-white/10 text-amber-400 hover:bg-white/10"
+              }`}
+            >
+              {isLight ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
+            </button>
+
             {/* Calendar */}
-            <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 py-1.5 font-satoshi text-[11px] text-slate-400">
+            <div className={`hidden sm:flex items-center gap-2 border rounded-xl px-3 py-1.5 font-satoshi text-[11px] ${
+              isLight
+                ? "bg-slate-100 border-slate-200 text-slate-600"
+                : "bg-white/5 border-white/5 text-slate-400"
+            }`}>
               <CalendarIcon className="w-3.5 h-3.5 text-[#0080ff]" />
               <span>{currentDate}</span>
             </div>
@@ -304,34 +350,50 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Notification Bell */}
             <Link
               href="/admin/messages"
-              className="relative w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 text-slate-300 transition-colors"
+              className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-colors ${
+                isLight
+                  ? "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                  : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10"
+              }`}
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-red-500 text-white font-satoshi font-bold text-[8px] rounded-full flex items-center justify-center border border-[#020310] animate-bounce">
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-red-500 text-white font-satoshi font-bold text-[8px] rounded-full flex items-center justify-center border border-white animate-bounce">
                   {unreadCount}
                 </span>
               )}
             </Link>
 
-            {/* View Live Site — opens the public storefront in a new tab */}
+            {/* View Live Site */}
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
               title="View Live Site"
               aria-label="View Live Site"
-              className="group relative w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-[#0080ff]/40 text-slate-300 hover:text-white transition-all duration-300 hover:shadow-[0_0_14px_rgba(0,128,255,0.18)]"
+              className={`group relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-300 ${
+                isLight
+                  ? "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 hover:border-blue-500/40"
+                  : "bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:border-[#0080ff]/40"
+              }`}
             >
-              <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-[#0080ff] transition-colors" />
+              <ExternalLink className={`w-4 h-4 transition-colors ${
+                isLight ? "text-slate-600 group-hover:text-[#0080ff]" : "text-slate-300 group-hover:text-[#0080ff]"
+              }`} />
             </a>
 
             {/* User Badge */}
-            <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl pl-2 pr-3 py-1 shrink-0">
+            <div className={`flex items-center gap-2 border rounded-xl pl-2 pr-3 py-1 shrink-0 ${
+              isLight
+                ? "bg-slate-100 border-slate-200"
+                : "bg-white/5 border-white/5"
+            }`}>
               <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                 <User className="w-3 h-3 text-[#0080ff]" />
               </div>
-              <span className="font-satoshi text-[11px] text-slate-300 font-semibold select-none hidden md:inline">
+              <span className={`font-satoshi text-[11px] font-semibold select-none hidden md:inline ${
+                isLight ? "text-slate-800" : "text-slate-300"
+              }`}>
                 Jowel Mahmud
               </span>
             </div>
@@ -344,5 +406,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminThemeProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </AdminThemeProvider>
   );
 }

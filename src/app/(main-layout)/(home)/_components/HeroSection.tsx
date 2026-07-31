@@ -109,6 +109,7 @@ export default function HeroSection() {
 
   return (
     <section
+      id="hero"
       ref={containerRef}
       className="relative min-h-screen w-full flex items-center justify-center pt-28 pb-20 px-6 md:px-12 overflow-hidden bg-black"
     >
@@ -170,7 +171,7 @@ export default function HeroSection() {
             </div>
 
             {/* Social Proof */}
-            <div className="animate-cta-item flex items-center gap-4 mt-2">
+            <div className="animate-cta-item flex items-center gap-4 mt-6 md:mt-8">
               <div className="flex -space-x-3.5">
                 {/* Overlapping Avatars */}
                 <div className="relative w-11 h-11 rounded-full border-2 border-white overflow-hidden bg-slate-800 z-30">
@@ -203,7 +204,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right Column: Floating Testimonial Card */}
-        <div className="lg:col-span-4 flex justify-center lg:justify-end">
+        <div className="lg:col-span-4 flex justify-center lg:justify-end translate-y-4 lg:translate-y-10">
           <div
             ref={testimonialRef}
             onMouseMove={handleMouseMove}

@@ -33,6 +33,7 @@ import {
   MAX_UPLOAD_BYTES,
   formatBytes,
 } from "@/types/media";
+import { useAdminTheme } from "@/context/admin-theme-context";
 
 type FormState = {
   title: string;
@@ -71,6 +72,8 @@ const centsToDollars = (cents: number | null | undefined): string => {
 
 export default function AdminProductsPage() {
   const router = useRouter();
+  const { theme } = useAdminTheme();
+  const isLight = theme === "light";
 
   // Data
   const [paginated, setPaginated] = useState<PaginatedProducts | null>(null);
@@ -292,10 +295,14 @@ export default function AdminProductsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white">
+          <h1 className={`font-heading font-normal text-2xl md:text-3xl ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             Manage Products
           </h1>
-          <p className="font-satoshi text-xs text-slate-500 font-light">
+          <p className={`font-satoshi text-xs font-light ${
+            isLight ? "text-slate-500" : "text-slate-400"
+          }`}>
             Create, update, and manage your Creative Asset packs catalog.
           </p>
         </div>
@@ -304,7 +311,11 @@ export default function AdminProductsPage() {
             type="button"
             onClick={fetchProducts}
             disabled={loading}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50"
+            className={`flex items-center gap-2 font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50 border ${
+              isLight
+                ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-sm"
+                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white"
+            }`}
             aria-label="Refresh products"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -313,7 +324,7 @@ export default function AdminProductsPage() {
           <button
             type="button"
             onClick={openAddForm}
-            className="flex items-center gap-2 bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-xs px-5 py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(0,128,255,0.25)]"
+            className="flex items-center gap-2 bg-[#0080ff] hover:bg-[#0070e6] text-white font-heading font-normal text-xs px-5 py-3 rounded-xl transition-all shadow-md"
           >
             <Plus className="w-3.5 h-3.5" />
             Create Pack
@@ -332,7 +343,9 @@ export default function AdminProductsPage() {
       )}
 
       {/* Filter Row */}
-      <div className="flex bg-[#070914] border border-white/5 rounded-xl p-3 items-center">
+      <div className={`flex border rounded-xl p-3 items-center ${
+        isLight ? "bg-white border-slate-200/80 shadow-sm" : "bg-[#070914] border-white/5"
+      }`}>
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -340,17 +353,27 @@ export default function AdminProductsPage() {
             placeholder="Search products by title or tag..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0a0d1a] border border-white/5 rounded-lg pl-10 pr-4 py-2 font-satoshi text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/40"
+            className={`w-full border rounded-lg pl-10 pr-4 py-2 font-satoshi text-xs focus:outline-none focus:border-blue-500/40 ${
+              isLight
+                ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
+                : "bg-[#0a0d1a] border-white/5 text-white placeholder:text-slate-600"
+            }`}
           />
         </div>
       </div>
 
       {/* Products Table */}
-      <div className="bg-[#070914] border border-white/5 rounded-2xl overflow-hidden shadow-lg">
+      <div className={`border rounded-2xl overflow-hidden ${
+        isLight ? "bg-white border-slate-200/80 shadow-sm" : "bg-[#070914] border-white/5 shadow-lg"
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-white/5 bg-[#0a0d1a]/50 text-slate-400 font-satoshi text-[10px] uppercase tracking-wider font-semibold">
+              <tr className={`border-b font-satoshi text-[10px] uppercase tracking-wider font-semibold ${
+                isLight
+                  ? "border-slate-200 bg-slate-50 text-slate-600"
+                  : "border-white/5 bg-[#0a0d1a]/50 text-slate-400"
+              }`}>
                 <th className="px-6 py-4">Pack Info</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Price</th>
@@ -358,7 +381,7 @@ export default function AdminProductsPage() {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className={`divide-y ${isLight ? "divide-slate-200/80" : "divide-white/5"}`}>
               {loading &&
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={`skel-${i}`} className="animate-pulse">
@@ -523,7 +546,7 @@ export default function AdminProductsPage() {
 
       {/* ADD / EDIT DRAWER */}
       {formOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-[100] flex justify-end">
           <div
             onClick={closeForm}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"

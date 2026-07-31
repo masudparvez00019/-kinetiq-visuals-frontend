@@ -20,6 +20,7 @@ import {
   type SiteConfig,
   type UpdateSiteConfigPayload,
 } from "@/types/site-config";
+import { useAdminTheme } from "@/context/admin-theme-context";
 
 type Tab = "home" | "course" | "contact";
 
@@ -42,11 +43,13 @@ const DEFAULT_CONFIG: SiteConfig = {
   mentorStudents: "",
   contactEmail: "",
   contactPhone: "",
-  updatedAt: "",
+  updatedAt: new Date().toISOString(),
 };
 
 export default function AdminContentPage() {
   const router = useRouter();
+  const { theme } = useAdminTheme();
+  const isLight = theme === "light";
 
   // Server data
   const [config, setConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
@@ -55,7 +58,7 @@ export default function AdminContentPage() {
 
   // Form state (mirrors `config` once loaded)
   const [form, setForm] = useState<SiteConfig>(DEFAULT_CONFIG);
-  const [coursePriceDollars, setCoursePriceDollars] = useState("");
+  const [coursePriceDollars, setCoursePriceDollars] = useState<string>("0");
 
   // UI state
   const [activeTab, setActiveTab] = useState<Tab>("home");
@@ -92,35 +95,17 @@ export default function AdminContentPage() {
     fetchConfig();
   }, [fetchConfig]);
 
-  // Detect dirty state whenever the user edits any field
-  useEffect(() => {
-    const priceDollars = parseFloat(coursePriceDollars);
-    const priceMatches =
-      !Number.isNaN(priceDollars) &&
-      Math.round(priceDollars * 100) === form.coursePriceCents;
-    const isDirty =
-      form.homeHeroTitle1 !== config.homeHeroTitle1 ||
-      form.homeHeroTitle2 !== config.homeHeroTitle2 ||
-      form.homeHeroTitle3 !== config.homeHeroTitle3 ||
-      form.homeHeroSubtitle !== config.homeHeroSubtitle ||
-      !priceMatches ||
-      form.courseDescription !== config.courseDescription ||
-      form.mentorName !== config.mentorName ||
-      form.mentorTitle !== config.mentorTitle ||
-      form.mentorBio !== config.mentorBio ||
-      form.mentorExperience !== config.mentorExperience ||
-      form.mentorProjects !== config.mentorProjects ||
-      form.mentorStudents !== config.mentorStudents ||
-      form.contactEmail !== config.contactEmail ||
-      form.contactPhone !== config.contactPhone;
-    setDirty(isDirty);
-  }, [form, coursePriceDollars, config]);
-
   const updateForm = <K extends keyof SiteConfig>(
     key: K,
     value: SiteConfig[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+  };
+
+  const handlePriceChange = (val: string) => {
+    setCoursePriceDollars(val);
+    setDirty(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,14 +166,20 @@ export default function AdminContentPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading font-normal text-2xl md:text-3xl text-white">
+          <h1 className={`font-heading font-normal text-2xl md:text-3xl ${
+            isLight ? "text-slate-900" : "text-white"
+          }`}>
             Page Content CMS
           </h1>
-          <p className="font-satoshi text-xs text-slate-500 font-light">
+          <p className={`font-satoshi text-xs font-light ${
+            isLight ? "text-slate-500" : "text-slate-400"
+          }`}>
             Edit titles, subtitles, bios, contact credentials, and course prices dynamically.
           </p>
           {lastSavedLabel && (
-            <span className="font-satoshi text-[10px] text-slate-600 mt-1">
+            <span className={`font-satoshi text-[10px] mt-1 ${
+              isLight ? "text-slate-500" : "text-slate-600"
+            }`}>
               Last updated {lastSavedLabel}
             </span>
           )}
@@ -198,7 +189,11 @@ export default function AdminContentPage() {
             type="button"
             onClick={fetchConfig}
             disabled={loading || saving}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50"
+            className={`flex items-center gap-2 font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50 border ${
+              isLight
+                ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-xs"
+                : "bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white"
+            }`}
             aria-label="Refresh"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -210,9 +205,11 @@ export default function AdminContentPage() {
             disabled={!dirty || saving}
             className={`flex items-center gap-2 font-heading font-normal text-xs px-5 py-3 rounded-xl transition-all self-start sm:self-auto ${
               saved
-                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/20"
                 : dirty
-                  ? "bg-[#0080ff] hover:bg-[#0070e6] text-white shadow-[0_0_15px_rgba(0,128,255,0.25)]"
+                  ? "bg-[#0080ff] hover:bg-[#0070e6] text-white shadow-md"
+                  : isLight
+                  ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
                   : "bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed"
             }`}
           >
@@ -247,7 +244,7 @@ export default function AdminContentPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-white/5 gap-6">
+      <div className={`flex border-b gap-6 ${isLight ? "border-slate-200" : "border-white/5"}`}>
         {(["home", "course", "contact"] as const).map((tab) => (
           <button
             key={tab}
@@ -255,7 +252,9 @@ export default function AdminContentPage() {
             onClick={() => setActiveTab(tab)}
             className={`font-heading font-normal text-sm pb-3.5 border-b-2 transition-all capitalize px-1 ${
               activeTab === tab
-                ? "border-[#0080ff] text-white"
+                ? "border-[#0080ff] text-[#0080ff] font-bold"
+                : isLight
+                ? "border-transparent text-slate-500 hover:text-slate-900"
                 : "border-transparent text-slate-500 hover:text-slate-300"
             }`}
           >
@@ -265,7 +264,9 @@ export default function AdminContentPage() {
       </div>
 
       {/* Form Panel */}
-      <div className="bg-[#070914] border border-white/5 rounded-2xl p-6 md:p-8 shadow-lg">
+      <div className={`border rounded-2xl p-6 md:p-8 ${
+        isLight ? "bg-white border-slate-200/80 shadow-xs" : "bg-[#070914] border-white/5 shadow-lg"
+      }`}>
         {loading ? (
           <div className="flex items-center justify-center gap-3 py-16 text-slate-500 font-satoshi text-xs">
             <Loader2 className="w-4 h-4 animate-spin" />

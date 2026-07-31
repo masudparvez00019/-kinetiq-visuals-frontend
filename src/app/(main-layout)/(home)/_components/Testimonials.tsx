@@ -57,8 +57,6 @@ const SPOTLIGHT_CSS = `
   .testimonial-card-item {
     position: relative;
     overflow: hidden;
-    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
-    transition: transform 0.15s ease-out;
     transform-style: preserve-3d;
   }
   .testimonial-card-item::before {
@@ -128,6 +126,8 @@ export default function Testimonials() {
 
   // 1. Initial entrance animations on scroll
   useGSAP(() => {
+    gsap.set(".testimonial-card-item", { transformPerspective: 1000 });
+
     gsap.fromTo(
       ".testimonials-header-group",
       { y: 40, opacity: 0 },
@@ -207,20 +207,31 @@ export default function Testimonials() {
     
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    // GPU-accelerated CSS variables for 3D tilt tracking (Max 8 degrees)
     const rotateX = (-(y - centerY) / centerY) * 8;
     const rotateY = ((x - centerX) / centerX) * 8;
     
-    card.style.setProperty("--rotate-x", `${rotateX}deg`);
-    card.style.setProperty("--rotate-y", `${rotateY}deg`);
+    gsap.to(card, {
+      rotateX: rotateX,
+      rotateY: rotateY,
+      transformPerspective: 1000,
+      duration: 0.25,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
+    
     card.style.setProperty("--mouse-x", `${x}px`);
     card.style.setProperty("--mouse-y", `${y}px`);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
-    card.style.setProperty("--rotate-x", `0deg`);
-    card.style.setProperty("--rotate-y", `0deg`);
+    gsap.to(card, {
+      rotateX: 0,
+      rotateY: 0,
+      duration: 0.5,
+      ease: "power2.out",
+      overwrite: "auto"
+    });
   };
 
   return (
@@ -276,7 +287,7 @@ export default function Testimonials() {
         </div>
 
         {/* Testimonials Slider Viewport */}
-        <div className="testimonial-slider-viewport overflow-hidden w-full relative">
+        <div className="testimonial-slider-viewport overflow-hidden w-full relative py-8 -my-8 px-2 -mx-2">
           <div
             ref={trackRef}
             className="flex gap-6 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] w-max"
@@ -291,7 +302,7 @@ export default function Testimonials() {
                   key={idx}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
-                  className="testimonial-card-item shrink-0 relative p-4 sm:p-6 bg-gradient-to-b from-[#4F46E5] to-[#001A49] rounded-[24px] hover:shadow-[0_20px_50px_rgba(79,70,231,0.22)] flex flex-col sm:flex-row gap-6 group h-[560px] sm:h-[480px] cursor-pointer"
+                  className="testimonial-card-item shrink-0 relative p-4 sm:p-6 bg-gradient-to-b from-[#4F46E5] to-[#001A49] rounded-[24px] border border-indigo-500/20 hover:border-indigo-400/40 hover:shadow-[0_20px_50px_rgba(79,70,231,0.22)] transition-colors duration-500 flex flex-col sm:flex-row gap-6 group h-[560px] sm:h-[480px] cursor-pointer"
                   style={{ width: `${cardWidth}px` }}
                 >
                   {/* Local Cursor Spotlight Glow */}

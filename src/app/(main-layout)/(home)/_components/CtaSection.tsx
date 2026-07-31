@@ -158,14 +158,14 @@ export default function CtaSection() {
           {/* Action CTA Buttons (Right Column) */}
           <div className="flex items-center gap-3 shrink-0 select-none">
             <Link
-              href="#services"
+              href="/#services"
               className="px-8 py-3.5 bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white rounded-full font-satoshi font-semibold text-sm tracking-wide hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300 cursor-pointer"
             >
               Get Started Today
             </Link>
             
             <Link
-              href="#services"
+              href="/#services"
               className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white flex items-center justify-center hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300 cursor-pointer"
             >
               <FiArrowUpRight size={20} />
