@@ -92,7 +92,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    name: Deploy web to ${{ vars.DEPLOY_HOST || secrets.SSH_HOST }}
+    name: Deploy web application
     needs: docker
     runs-on: ubuntu-latest
     if: >
