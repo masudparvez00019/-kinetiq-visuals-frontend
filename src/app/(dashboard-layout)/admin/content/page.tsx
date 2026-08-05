@@ -13,6 +13,7 @@ import {
 
 import { siteConfigService } from "@/services/site-config.service";
 import { authService } from "@/services/auth.service";
+import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/axios";
 import {
   centsToDollars,
@@ -58,6 +59,47 @@ const DEFAULT_CONFIG: SiteConfig = {
   servicesCtaText: "Book A Service Today",
   servicesCtaLink: "/contact",
   servicesItems: [],
+  testimonialsBadgeText: "Testimonials",
+  testimonialsTitle: "What they say about Us?",
+  testimonialsItems: [],
+  processBadgeText: "Our Process",
+  processTitleLine1: "THE",
+  processTitleLine2: "PROCESS",
+  processTitleLine3: "BEHIND",
+  processTitleLine4: "THE",
+  processTitleLine5: "RESULTS.",
+  processSubtitle: "A streamlined workflow designed to turn raw footage into scroll-stopping content that drives real growth.",
+  processSteps: [],
+  ctaSectionBadgeText: "Let's Create Engaging Contents",
+  ctaSectionTitle1: "Ready to Turn Raw Footage",
+  ctaSectionTitle2: "Into High-Performing",
+  ctaSectionTitle3: "Content?",
+  ctaSectionDesc: "In today's crowded digital landscape, great content alone isn't enough—presentation matters. Professionally edited videos help your brand stand out, communicate your message clearly, and keep viewers engaged from the first second to the last.",
+  ctaSectionTags: ["Travel", "Cooking", "Fitness", "Gardening", "Tech Reviews"],
+  ctaSectionBtnText: "Get Started Today",
+  ctaSectionBtnLink: "/#services",
+  faqBadgeLeftTitle: "Your RAW",
+  faqBadgeLeftSubtitle: "Footage",
+  faqBadgeRightTitle: "KQ",
+  faqBadgeRightSubtitle: "Visuals",
+  faqTitleLine1: "Have any questions?",
+  faqTitleLine2: "Read popular answers below",
+  faqItems: [],
+  footerTwitterUrl: "https://twitter.com",
+  footerLinkedinUrl: "https://linkedin.com",
+  footerInstagramUrl: "https://instagram.com",
+  footerTitleLine1: "Let's Create",
+  footerTitleLine2: "Something Worth",
+  footerTitleLine3: "Watching",
+  footerBrandText: "KQ VISUALS",
+  footerCopyrightText: "© KQ Visuals All Rights Reserved 2026",
+  footerNavLinks: [
+    { label: "Services", href: "/#services" },
+    { label: "Works", href: "/#works" },
+    { label: "Process", href: "/#process" },
+    { label: "Products", href: "/products" },
+    { label: "Course", href: "/course" },
+  ],
   coursePriceCents: 0,
   courseCurrency: "USD",
   coursePriceLabel: "",
@@ -178,6 +220,41 @@ export default function AdminContentPage() {
       servicesCtaText: form.servicesCtaText,
       servicesCtaLink: form.servicesCtaLink,
       servicesItems: form.servicesItems,
+      testimonialsBadgeText: form.testimonialsBadgeText,
+      testimonialsTitle: form.testimonialsTitle,
+      testimonialsItems: form.testimonialsItems,
+      processBadgeText: form.processBadgeText,
+      processTitleLine1: form.processTitleLine1,
+      processTitleLine2: form.processTitleLine2,
+      processTitleLine3: form.processTitleLine3,
+      processTitleLine4: form.processTitleLine4,
+      processTitleLine5: form.processTitleLine5,
+      processSubtitle: form.processSubtitle,
+      processSteps: form.processSteps,
+      ctaSectionBadgeText: form.ctaSectionBadgeText,
+      ctaSectionTitle1: form.ctaSectionTitle1,
+      ctaSectionTitle2: form.ctaSectionTitle2,
+      ctaSectionTitle3: form.ctaSectionTitle3,
+      ctaSectionDesc: form.ctaSectionDesc,
+      ctaSectionTags: form.ctaSectionTags,
+      ctaSectionBtnText: form.ctaSectionBtnText,
+      ctaSectionBtnLink: form.ctaSectionBtnLink,
+      faqBadgeLeftTitle: form.faqBadgeLeftTitle,
+      faqBadgeLeftSubtitle: form.faqBadgeLeftSubtitle,
+      faqBadgeRightTitle: form.faqBadgeRightTitle,
+      faqBadgeRightSubtitle: form.faqBadgeRightSubtitle,
+      faqTitleLine1: form.faqTitleLine1,
+      faqTitleLine2: form.faqTitleLine2,
+      faqItems: form.faqItems,
+      footerTwitterUrl: form.footerTwitterUrl,
+      footerLinkedinUrl: form.footerLinkedinUrl,
+      footerInstagramUrl: form.footerInstagramUrl,
+      footerTitleLine1: form.footerTitleLine1,
+      footerTitleLine2: form.footerTitleLine2,
+      footerTitleLine3: form.footerTitleLine3,
+      footerBrandText: form.footerBrandText,
+      footerCopyrightText: form.footerCopyrightText,
+      footerNavLinks: form.footerNavLinks,
       coursePriceCents: priceCents,
       courseDescription: form.courseDescription,
       mentorName: form.mentorName,
@@ -197,9 +274,12 @@ export default function AdminContentPage() {
       setCoursePriceDollars(centsToDollars(updated.coursePriceCents));
       setDirty(false);
       setSaved(true);
+      toast.success("Page content updated successfully!");
       setTimeout(() => setSaved(false), 2200);
     } catch (err) {
-      setError(getErrorMessage(err, "Could not save site content."));
+      const msg = getErrorMessage(err, "Could not save site content.");
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -215,6 +295,11 @@ export default function AdminContentPage() {
       minute: "2-digit",
     });
   }, [config.updatedAt]);
+
+  const handleReload = async () => {
+    await fetchConfig();
+    toast.success("Content reloaded successfully!");
+  };
 
   return (
     <div className="flex flex-col gap-8 w-full">
@@ -242,7 +327,7 @@ export default function AdminContentPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={fetchConfig}
+            onClick={handleReload}
             disabled={loading || saving}
             className={`flex items-center gap-2 font-heading font-normal text-xs px-4 py-3 rounded-xl transition-all disabled:opacity-50 border ${
               isLight
@@ -550,63 +635,7 @@ export default function AdminContentPage() {
                   </div>
                 </div>
 
-                {/* 6. Showcase Video Section */}
-                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
-                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
-                    Showcase Video Section ("See What Your Content Could Become")
-                  </h3>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                      Showcase Heading Title
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.showcaseTitle}
-                      onChange={(e) => updateForm("showcaseTitle", e.target.value)}
-                      placeholder="e.g. See What Your Content Could Become"
-                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                      Showcase Subtitle Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      required
-                      value={form.showcaseSubtitle}
-                      onChange={(e) => updateForm("showcaseSubtitle", e.target.value)}
-                      placeholder="e.g. From short–form social content to high–end commercial edits..."
-                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-                    <MediaUploader
-                      label="Showcase Video (MP4/WebM)"
-                      value={form.showcaseVideoUrl}
-                      onChange={(url) => updateForm("showcaseVideoUrl", url)}
-                      accept="video/mp4,video/webm,video/*"
-                      type="video"
-                      placeholder="Upload showcase video file..."
-                    />
-
-                    <MediaUploader
-                      label="Showcase Video Poster Image"
-                      value={form.showcasePosterUrl}
-                      onChange={(url) => updateForm("showcasePosterUrl", url)}
-                      accept="image/*"
-                      type="image"
-                      placeholder="Upload video poster image..."
-                    />
-                  </div>
-                </div>
-
-                {/* 7. Recent Clients & Partners Section */}
+                 {/* 6. Recent Clients & Partners Section */}
                 <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
                   <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#0080ff]" />
@@ -732,6 +761,62 @@ export default function AdminContentPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                </div>
+
+                {/* 7. Showcase Video Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    Showcase Video Section ("See What Your Content Could Become")
+                  </h3>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Showcase Heading Title
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.showcaseTitle}
+                      onChange={(e) => updateForm("showcaseTitle", e.target.value)}
+                      placeholder="e.g. See What Your Content Could Become"
+                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Showcase Subtitle Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={form.showcaseSubtitle}
+                      onChange={(e) => updateForm("showcaseSubtitle", e.target.value)}
+                      placeholder="e.g. From short–form social content to high–end commercial edits..."
+                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    <MediaUploader
+                      label="Showcase Video (MP4/WebM)"
+                      value={form.showcaseVideoUrl}
+                      onChange={(url) => updateForm("showcaseVideoUrl", url)}
+                      accept="video/mp4,video/webm,video/*"
+                      type="video"
+                      placeholder="Upload showcase video file..."
+                    />
+
+                    <MediaUploader
+                      label="Showcase Video Poster Image"
+                      value={form.showcasePosterUrl}
+                      onChange={(url) => updateForm("showcasePosterUrl", url)}
+                      accept="image/*"
+                      type="image"
+                      placeholder="Upload video poster image..."
+                    />
                   </div>
                 </div>
 
@@ -1229,6 +1314,914 @@ export default function AdminContentPage() {
                       {(!form.servicesItems || form.servicesItems.length === 0) && (
                         <div className="p-6 rounded-xl bg-slate-900/30 border border-dashed border-white/10 text-center text-xs text-slate-500">
                           No service cards added yet. Click "+ Add Service Card" above to add services.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 10. Testimonials Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    Testimonials Section ("What they say about Us?")
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Badge Text
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.testimonialsBadgeText || ""}
+                        onChange={(e) => updateForm("testimonialsBadgeText", e.target.value)}
+                        placeholder="e.g. Testimonials"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Section Heading Title
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.testimonialsTitle || ""}
+                        onChange={(e) => updateForm("testimonialsTitle", e.target.value)}
+                        placeholder="e.g. What they say about Us?"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dynamic Testimonials List */}
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Testimonial Cards ({form.testimonialsItems?.length || 0})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = Array.isArray(form.testimonialsItems) ? form.testimonialsItems : [];
+                          const newItem = {
+                            id: String(Date.now()),
+                            name: `Client ${current.length + 1}`,
+                            role: "Luxury Real Estate Agent",
+                            text: "Working with this team completely changed our content game. Our engagement increased within weeks.",
+                            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80",
+                            videoUrl: "/video/video.mp4",
+                            poster: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&h=400&q=80",
+                          };
+                          updateForm("testimonialsItems", [...current, newItem]);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-medium transition-colors flex items-center gap-1.5"
+                      >
+                        + Add Testimonial Card
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-5">
+                      {(form.testimonialsItems || []).map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="p-5 rounded-2xl bg-slate-900/60 border border-white/10 flex flex-col gap-4 relative group"
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-3">
+                            <span className="text-xs font-semibold text-blue-400">
+                              Testimonial #{idx + 1}: {item.name || "Unnamed Client"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = Array.isArray(form.testimonialsItems) ? form.testimonialsItems : [];
+                                updateForm(
+                                  "testimonialsItems",
+                                  current.filter((_, i) => i !== idx),
+                                );
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20"
+                            >
+                              Remove Card
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Client Name</label>
+                              <input
+                                type="text"
+                                value={item.name || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.testimonialsItems || [])];
+                                  current[idx] = { ...current[idx], name: e.target.value };
+                                  updateForm("testimonialsItems", current);
+                                }}
+                                placeholder="e.g. Daniel Carter"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Role / Designation</label>
+                              <input
+                                type="text"
+                                value={item.role || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.testimonialsItems || [])];
+                                  current[idx] = { ...current[idx], role: e.target.value };
+                                  updateForm("testimonialsItems", current);
+                                }}
+                                placeholder="e.g. Luxury Real Estate Agent"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-400 font-medium">Testimonial Quote Text</label>
+                            <textarea
+                              rows={3}
+                              value={item.text || ""}
+                              onChange={(e) => {
+                                const current = [...(form.testimonialsItems || [])];
+                                current[idx] = { ...current[idx], text: e.target.value };
+                                updateForm("testimonialsItems", current);
+                              }}
+                              placeholder="Testimonial text quote..."
+                              className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <MediaUploader
+                              label="Client Avatar Photo"
+                              value={item.avatar}
+                              onChange={(url) => {
+                                const current = [...(form.testimonialsItems || [])];
+                                current[idx] = { ...current[idx], avatar: url };
+                                updateForm("testimonialsItems", current);
+                              }}
+                              accept="image/*"
+                              type="image"
+                              placeholder="Upload avatar..."
+                            />
+
+                            <MediaUploader
+                              label="Video File (MP4/WebM)"
+                              value={item.videoUrl}
+                              onChange={(url) => {
+                                const current = [...(form.testimonialsItems || [])];
+                                current[idx] = { ...current[idx], videoUrl: url };
+                                updateForm("testimonialsItems", current);
+                              }}
+                              accept="video/mp4,video/webm,video/*"
+                              type="video"
+                              placeholder="Upload video file..."
+                            />
+
+                            <MediaUploader
+                              label="Video Poster Image"
+                              value={item.poster}
+                              onChange={(url) => {
+                                const current = [...(form.testimonialsItems || [])];
+                                current[idx] = { ...current[idx], poster: url };
+                                updateForm("testimonialsItems", current);
+                              }}
+                              accept="image/*"
+                              type="image"
+                              placeholder="Upload poster..."
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!form.testimonialsItems || form.testimonialsItems.length === 0) && (
+                        <div className="p-6 rounded-xl bg-slate-900/30 border border-dashed border-white/10 text-center text-xs text-slate-500">
+                          No testimonial cards added yet. Click "+ Add Testimonial Card" above to add testimonials.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 11. Process Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    Process Section ("THE PROCESS BEHIND THE RESULTS")
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Badge Text
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.processBadgeText || ""}
+                        onChange={(e) => updateForm("processBadgeText", e.target.value)}
+                        placeholder="e.g. Our Process"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Subtitle Description
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.processSubtitle || ""}
+                        onChange={(e) => updateForm("processSubtitle", e.target.value)}
+                        placeholder="e.g. A streamlined workflow designed to turn raw footage into scroll-stopping content..."
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 5 Title Lines */}
+                  <div className="flex flex-col gap-2 bg-black/20 p-4 rounded-xl border border-white/5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Main Heading Title (5 Stacked Lines)
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Line 1</label>
+                        <input
+                          type="text"
+                          value={form.processTitleLine1 || ""}
+                          onChange={(e) => updateForm("processTitleLine1", e.target.value)}
+                          placeholder="THE"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-blue-400 font-medium">Line 2 (Highlighted)</label>
+                        <input
+                          type="text"
+                          value={form.processTitleLine2 || ""}
+                          onChange={(e) => updateForm("processTitleLine2", e.target.value)}
+                          placeholder="PROCESS"
+                          className="bg-[#0a0d1a] border border-blue-500/30 rounded-lg px-3 py-2 text-xs text-blue-300 font-semibold focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Line 3</label>
+                        <input
+                          type="text"
+                          value={form.processTitleLine3 || ""}
+                          onChange={(e) => updateForm("processTitleLine3", e.target.value)}
+                          placeholder="BEHIND"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Line 4</label>
+                        <input
+                          type="text"
+                          value={form.processTitleLine4 || ""}
+                          onChange={(e) => updateForm("processTitleLine4", e.target.value)}
+                          placeholder="THE"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Line 5</label>
+                        <input
+                          type="text"
+                          value={form.processTitleLine5 || ""}
+                          onChange={(e) => updateForm("processTitleLine5", e.target.value)}
+                          placeholder="RESULTS."
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Process Steps List */}
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Process Steps Timeline ({form.processSteps?.length || 0})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = Array.isArray(form.processSteps) ? form.processSteps : [];
+                          const stepNum = String(current.length + 1).padStart(2, "0");
+                          const newItem = {
+                            id: String(Date.now()),
+                            num: stepNum,
+                            title: `Step ${stepNum}`,
+                            desc: "Description of the step workflow.",
+                            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&h=400&q=80",
+                          };
+                          updateForm("processSteps", [...current, newItem]);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-medium transition-colors flex items-center gap-1.5"
+                      >
+                        + Add Process Step
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-5">
+                      {(form.processSteps || []).map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="p-5 rounded-2xl bg-slate-900/60 border border-white/10 flex flex-col gap-4 relative group"
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-3">
+                            <span className="text-xs font-semibold text-blue-400">
+                              Step {item.num || idx + 1}: {item.title || "Unnamed Step"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = Array.isArray(form.processSteps) ? form.processSteps : [];
+                                updateForm(
+                                  "processSteps",
+                                  current.filter((_, i) => i !== idx),
+                                );
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20"
+                            >
+                              Remove Step
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Step Number</label>
+                              <input
+                                type="text"
+                                value={item.num || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.processSteps || [])];
+                                  current[idx] = { ...current[idx], num: e.target.value };
+                                  updateForm("processSteps", current);
+                                }}
+                                placeholder="e.g. 01"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+
+                            <div className="md:col-span-2 flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Step Title</label>
+                              <input
+                                type="text"
+                                value={item.title || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.processSteps || [])];
+                                  current[idx] = { ...current[idx], title: e.target.value };
+                                  updateForm("processSteps", current);
+                                }}
+                                placeholder="e.g. STRATEGY / Asset Collection"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Description</label>
+                              <textarea
+                                rows={3}
+                                value={item.desc || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.processSteps || [])];
+                                  current[idx] = { ...current[idx], desc: e.target.value };
+                                  updateForm("processSteps", current);
+                                }}
+                                placeholder="Step description..."
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                              />
+                            </div>
+
+                            <MediaUploader
+                              label="Step Mockup Graphic Image"
+                              value={item.image}
+                              onChange={(url) => {
+                                const current = [...(form.processSteps || [])];
+                                current[idx] = { ...current[idx], image: url };
+                                updateForm("processSteps", current);
+                              }}
+                              accept="image/*"
+                              type="image"
+                              placeholder="Upload step graphic..."
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!form.processSteps || form.processSteps.length === 0) && (
+                        <div className="p-6 rounded-xl bg-slate-900/30 border border-dashed border-white/10 text-center text-xs text-slate-500">
+                          No process steps added yet. Click "+ Add Process Step" above to add steps.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 12. CTA Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    CTA Banner Section ("Ready to Turn Raw Footage Into High-Performing Content?")
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Badge Text
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.ctaSectionBadgeText || ""}
+                        onChange={(e) => updateForm("ctaSectionBadgeText", e.target.value)}
+                        placeholder="e.g. Let's Create Engaging Contents"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        CTA Button Label
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.ctaSectionBtnText || ""}
+                        onChange={(e) => updateForm("ctaSectionBtnText", e.target.value)}
+                        placeholder="e.g. Get Started Today"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        CTA Button Target Link
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.ctaSectionBtnLink || ""}
+                        onChange={(e) => updateForm("ctaSectionBtnLink", e.target.value)}
+                        placeholder="e.g. /#services or /contact"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 3 Title Lines */}
+                  <div className="flex flex-col gap-2 bg-black/20 p-4 rounded-xl border border-white/5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Main Heading Title (3 Stacked Lines)
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Title Line 1</label>
+                        <input
+                          type="text"
+                          value={form.ctaSectionTitle1 || ""}
+                          onChange={(e) => updateForm("ctaSectionTitle1", e.target.value)}
+                          placeholder="Ready to Turn Raw Footage"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Title Line 2</label>
+                        <input
+                          type="text"
+                          value={form.ctaSectionTitle2 || ""}
+                          onChange={(e) => updateForm("ctaSectionTitle2", e.target.value)}
+                          placeholder="Into High-Performing"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Title Line 3</label>
+                        <input
+                          type="text"
+                          value={form.ctaSectionTitle3 || ""}
+                          onChange={(e) => updateForm("ctaSectionTitle3", e.target.value)}
+                          placeholder="Content?"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Description Copy Text
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={form.ctaSectionDesc || ""}
+                      onChange={(e) => updateForm("ctaSectionDesc", e.target.value)}
+                      placeholder="e.g. In today's crowded digital landscape, great content alone isn't enough..."
+                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  {/* Category Pill Tags */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Category Tag Pills (Comma Separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={Array.isArray(form.ctaSectionTags) ? form.ctaSectionTags.join(", ") : form.ctaSectionTags || ""}
+                      onChange={(e) => {
+                        const tags = e.target.value.split(",").map((t) => t.trim()).filter(Boolean);
+                        updateForm("ctaSectionTags", tags);
+                      }}
+                      placeholder="Travel, Cooking, Fitness, Gardening, Tech Reviews"
+                      className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                    />
+                    <span className="text-[10px] text-slate-500">
+                      Separate each pill tag with a comma. Currently {form.ctaSectionTags?.length || 0} tags active.
+                    </span>
+                  </div>
+                </div>
+
+                {/* 13. FAQ Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    FAQ Section ("Have any questions? Read popular answers below")
+                  </h3>
+
+                  {/* Emblem Badge Titles */}
+                  <div className="flex flex-col gap-2 bg-black/20 p-4 rounded-xl border border-white/5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Overlapping Emblem Circle Badges
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Left Circle Top Text</label>
+                        <input
+                          type="text"
+                          value={form.faqBadgeLeftTitle || ""}
+                          onChange={(e) => updateForm("faqBadgeLeftTitle", e.target.value)}
+                          placeholder="Your RAW"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Left Circle Bottom Text</label>
+                        <input
+                          type="text"
+                          value={form.faqBadgeLeftSubtitle || ""}
+                          onChange={(e) => updateForm("faqBadgeLeftSubtitle", e.target.value)}
+                          placeholder="Footage"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-blue-400 font-medium">Right Circle Top Text</label>
+                        <input
+                          type="text"
+                          value={form.faqBadgeRightTitle || ""}
+                          onChange={(e) => updateForm("faqBadgeRightTitle", e.target.value)}
+                          placeholder="KQ"
+                          className="bg-[#0a0d1a] border border-blue-500/30 rounded-lg px-3 py-2 text-xs text-blue-300 font-semibold focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400">Right Circle Bottom Text</label>
+                        <input
+                          type="text"
+                          value={form.faqBadgeRightSubtitle || ""}
+                          onChange={(e) => updateForm("faqBadgeRightSubtitle", e.target.value)}
+                          placeholder="Visuals"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section Title Lines */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Heading Title Line 1
+                      </label>
+                      <input
+                        type="text"
+                        value={form.faqTitleLine1 || ""}
+                        onChange={(e) => updateForm("faqTitleLine1", e.target.value)}
+                        placeholder="Have any questions?"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Heading Title Line 2
+                      </label>
+                      <input
+                        type="text"
+                        value={form.faqTitleLine2 || ""}
+                        onChange={(e) => updateForm("faqTitleLine2", e.target.value)}
+                        placeholder="Read popular answers below"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dynamic FAQ Items Accordion Editor */}
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        FAQ Accordion List ({form.faqItems?.length || 0})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = Array.isArray(form.faqItems) ? form.faqItems : [];
+                          const newItem = {
+                            id: String(Date.now()),
+                            question: "New FAQ Question?",
+                            answer: "Provide detailed answer explanation here...",
+                          };
+                          updateForm("faqItems", [...current, newItem]);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-medium transition-colors flex items-center gap-1.5"
+                      >
+                        + Add FAQ Item
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {(form.faqItems || []).map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="p-5 rounded-2xl bg-slate-900/60 border border-white/10 flex flex-col gap-4 relative group"
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-3">
+                            <span className="text-xs font-semibold text-blue-400">
+                              FAQ #{idx + 1}: {item.question || "Untitled Question"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = Array.isArray(form.faqItems) ? form.faqItems : [];
+                                updateForm(
+                                  "faqItems",
+                                  current.filter((_, i) => i !== idx),
+                                );
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20"
+                            >
+                              Remove FAQ
+                            </button>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-400 font-medium">Question</label>
+                            <input
+                              type="text"
+                              value={item.question || ""}
+                              onChange={(e) => {
+                                const current = [...(form.faqItems || [])];
+                                current[idx] = { ...current[idx], question: e.target.value };
+                                updateForm("faqItems", current);
+                              }}
+                              placeholder="e.g. What video editing services do you provide?"
+                              className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] text-slate-400 font-medium">Answer</label>
+                            <textarea
+                              rows={3}
+                              value={item.answer || ""}
+                              onChange={(e) => {
+                                const current = [...(form.faqItems || [])];
+                                current[idx] = { ...current[idx], answer: e.target.value };
+                                updateForm("faqItems", current);
+                              }}
+                              placeholder="Full answer text..."
+                              className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40 resize-none leading-relaxed"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!form.faqItems || form.faqItems.length === 0) && (
+                        <div className="p-6 rounded-xl bg-slate-900/30 border border-dashed border-white/10 text-center text-xs text-slate-500">
+                          No FAQ items added yet. Click "+ Add FAQ Item" above to add questions and answers.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 14. Footer Section */}
+                <div className="flex flex-col gap-4 border-t border-white/5 pt-6">
+                  <h3 className="font-heading font-normal text-base text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#0080ff]" />
+                    Footer Section ("Let's Create Something Worth Watching")
+                  </h3>
+
+                  {/* Social Links */}
+                  <div className="flex flex-col gap-2 bg-black/20 p-4 rounded-xl border border-white/5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Social Media Links
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">Twitter / X URL</label>
+                        <input
+                          type="text"
+                          value={form.footerTwitterUrl || ""}
+                          onChange={(e) => updateForm("footerTwitterUrl", e.target.value)}
+                          placeholder="https://twitter.com"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">LinkedIn URL</label>
+                        <input
+                          type="text"
+                          value={form.footerLinkedinUrl || ""}
+                          onChange={(e) => updateForm("footerLinkedinUrl", e.target.value)}
+                          placeholder="https://linkedin.com"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">Instagram URL</label>
+                        <input
+                          type="text"
+                          value={form.footerInstagramUrl || ""}
+                          onChange={(e) => updateForm("footerInstagramUrl", e.target.value)}
+                          placeholder="https://instagram.com"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Heading Title (3 lines) */}
+                  <div className="flex flex-col gap-2 bg-black/20 p-4 rounded-xl border border-white/5">
+                    <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                      Footer Heading Title (3 Stacked Lines)
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">Title Line 1</label>
+                        <input
+                          type="text"
+                          value={form.footerTitleLine1 || ""}
+                          onChange={(e) => updateForm("footerTitleLine1", e.target.value)}
+                          placeholder="Let's Create"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">Title Line 2</label>
+                        <input
+                          type="text"
+                          value={form.footerTitleLine2 || ""}
+                          onChange={(e) => updateForm("footerTitleLine2", e.target.value)}
+                          placeholder="Something Worth"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-400 font-medium">Title Line 3</label>
+                        <input
+                          type="text"
+                          value={form.footerTitleLine3 || ""}
+                          onChange={(e) => updateForm("footerTitleLine3", e.target.value)}
+                          placeholder="Watching"
+                          className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Brand Text & Copyright */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Brand Logo Text
+                      </label>
+                      <input
+                        type="text"
+                        value={form.footerBrandText || ""}
+                        onChange={(e) => updateForm("footerBrandText", e.target.value)}
+                        placeholder="KQ VISUALS"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Copyright Notice Text
+                      </label>
+                      <input
+                        type="text"
+                        value={form.footerCopyrightText || ""}
+                        onChange={(e) => updateForm("footerCopyrightText", e.target.value)}
+                        placeholder="© KQ Visuals All Rights Reserved 2026"
+                        className="bg-[#0a0d1a] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Footer Navigation Links List */}
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex items-center justify-between">
+                      <label className="font-satoshi text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                        Footer Horizon Menu Links ({form.footerNavLinks?.length || 0})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = Array.isArray(form.footerNavLinks) ? form.footerNavLinks : [];
+                          const newItem = {
+                            id: String(Date.now()),
+                            label: "New Link",
+                            href: "/#section",
+                          };
+                          updateForm("footerNavLinks", [...current, newItem]);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-medium transition-colors flex items-center gap-1.5"
+                      >
+                        + Add Nav Link
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(form.footerNavLinks || []).map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="p-4 rounded-xl bg-slate-900/60 border border-white/10 flex flex-col gap-3 relative group"
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
+                            <span className="text-xs font-semibold text-blue-400">
+                              Link #{idx + 1}: {item.label || "Untitled Link"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = Array.isArray(form.footerNavLinks) ? form.footerNavLinks : [];
+                                updateForm(
+                                  "footerNavLinks",
+                                  current.filter((_, i) => i !== idx),
+                                );
+                              }}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors px-2 py-0.5 rounded bg-red-500/10 hover:bg-red-500/20"
+                            >
+                              Remove
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Link Label</label>
+                              <input
+                                type="text"
+                                value={item.label || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.footerNavLinks || [])];
+                                  current[idx] = { ...current[idx], label: e.target.value };
+                                  updateForm("footerNavLinks", current);
+                                }}
+                                placeholder="Services"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] text-slate-400 font-medium">Target URL / Href</label>
+                              <input
+                                type="text"
+                                value={item.href || ""}
+                                onChange={(e) => {
+                                  const current = [...(form.footerNavLinks || [])];
+                                  current[idx] = { ...current[idx], href: e.target.value };
+                                  updateForm("footerNavLinks", current);
+                                }}
+                                placeholder="/#services"
+                                className="bg-[#0a0d1a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500/40"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {(!form.footerNavLinks || form.footerNavLinks.length === 0) && (
+                        <div className="md:col-span-2 p-6 rounded-xl bg-slate-900/30 border border-dashed border-white/10 text-center text-xs text-slate-500">
+                          No footer nav links added yet. Click "+ Add Nav Link" above to add menu items.
                         </div>
                       )}
                     </div>

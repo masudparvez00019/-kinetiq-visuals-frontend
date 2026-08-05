@@ -5,12 +5,14 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SiteConfig, TestimonialItem } from "@/types/site-config";
+import { siteConfigService } from "@/services/site-config.service";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const TESTIMONIALS = [
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
     videoUrl: "/video/video.mp4",
     poster: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&h=400&q=80",
@@ -104,10 +106,25 @@ const SPOTLIGHT_CSS = `
 export default function Testimonials() {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [cardWidth, setCardWidth] = useState(668);
   const gap = 24;
+
+  useEffect(() => {
+    siteConfigService
+      .get()
+      .then(setConfig)
+      .catch(() => {});
+  }, []);
+
+  const badgeText = config?.testimonialsBadgeText || "Testimonials";
+  const titleText = config?.testimonialsTitle || "What they say about Us?";
+  const testimonials: TestimonialItem[] =
+    Array.isArray(config?.testimonialsItems) && config.testimonialsItems.length > 0
+      ? config.testimonialsItems
+      : DEFAULT_TESTIMONIALS;
 
   useEffect(() => {
     const handleResize = () => {
@@ -139,7 +156,7 @@ export default function Testimonials() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top 80%",
-        }
+        },
       }
     );
 
@@ -154,7 +171,7 @@ export default function Testimonials() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top 75%",
-        }
+        },
       }
     );
   }, { scope: containerRef });
@@ -164,17 +181,24 @@ export default function Testimonials() {
     const activeCard = trackRef.current?.children[activeIndex] as HTMLElement;
     if (!activeCard) return;
 
-    // Ensure all cards are fully visible and bright (no disabled/faded look!)
+    // Ensure all cards are fully visible and bright
     const allCards = Array.from(trackRef.current?.children || []) as HTMLElement[];
     allCards.forEach((card) => {
-      gsap.set(card.querySelectorAll(".testimonial-video-box, .testimonial-quote-text, .testimonial-author-group"), {
-        opacity: 1,
-        y: 0
-      });
+      gsap.set(
+        card.querySelectorAll(
+          ".testimonial-video-box, .testimonial-quote-text, .testimonial-author-group"
+        ),
+        {
+          opacity: 1,
+          y: 0,
+        }
+      );
     });
 
-    // Staggered premium entrance of the active card's inner content
-    const targets = activeCard.querySelectorAll(".testimonial-video-box, .testimonial-quote-text, .testimonial-author-group");
+    // Staggered entrance of the active card's inner content
+    const targets = activeCard.querySelectorAll(
+      ".testimonial-video-box, .testimonial-quote-text, .testimonial-author-group"
+    );
     gsap.fromTo(
       targets,
       { opacity: 0.85, y: 12 },
@@ -184,19 +208,19 @@ export default function Testimonials() {
         duration: 0.5,
         stagger: 0.08,
         ease: "power2.out",
-        overwrite: "auto"
+        overwrite: "auto",
       }
     );
   }, { dependencies: [activeIndex], scope: containerRef });
 
   const handleNext = () => {
     setPlayingIndex(null);
-    setActiveIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+    setActiveIndex((prev) => (prev + 1) % testimonials.length);
   };
 
   const handlePrev = () => {
     setPlayingIndex(null);
-    setActiveIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -204,21 +228,21 @@ export default function Testimonials() {
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     const rotateX = (-(y - centerY) / centerY) * 8;
     const rotateY = ((x - centerX) / centerX) * 8;
-    
+
     gsap.to(card, {
       rotateX: rotateX,
       rotateY: rotateY,
       transformPerspective: 1000,
       duration: 0.25,
       ease: "power2.out",
-      overwrite: "auto"
+      overwrite: "auto",
     });
-    
+
     card.style.setProperty("--mouse-x", `${x}px`);
     card.style.setProperty("--mouse-y", `${y}px`);
   };
@@ -230,7 +254,7 @@ export default function Testimonials() {
       rotateY: 0,
       duration: 0.5,
       ease: "power2.out",
-      overwrite: "auto"
+      overwrite: "auto",
     });
   };
 
@@ -243,19 +267,18 @@ export default function Testimonials() {
       <style>{SPOTLIGHT_CSS}</style>
 
       <div className="max-w-[1360px] mx-auto w-full flex flex-col gap-16 relative z-10">
-        
         {/* Section Header with Navigation Controls */}
         <div className="testimonials-header-group flex flex-col md:flex-row md:items-end justify-between gap-6 select-none">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 text-white font-heading font-normal tracking-wide text-xs md:text-sm">
               <span className="w-2.5 h-2.5 bg-blue-500 shrink-0" />
-              <span>Testimonials</span>
+              <span>{badgeText}</span>
             </div>
-            <h2 className="font-heading font-normal text-3xl md:text-[40px] text-white leading-tight tracking-wide">
-              What they say <br /> about Us?
+            <h2 className="font-heading font-normal text-3xl md:text-[40px] text-white leading-tight tracking-wide whitespace-pre-line">
+              {titleText}
             </h2>
           </div>
-          
+
           {/* Carousel Slide Indicators & Controls */}
           <div className="flex items-center gap-6 mt-4 md:mt-0">
             <button
@@ -265,14 +288,14 @@ export default function Testimonials() {
             >
               <ChevronLeft size={20} />
             </button>
-            
+
             <div className="flex items-center gap-1.5">
               <span className="font-satoshi text-blue-400 font-bold text-lg leading-none">
                 {activeIndex + 1}
               </span>
               <span className="font-satoshi text-slate-700 text-lg leading-none">/</span>
               <span className="font-satoshi text-[#2C82F5] text-lg leading-none">
-                {TESTIMONIALS.length}
+                {testimonials.length}
               </span>
             </div>
 
@@ -295,11 +318,19 @@ export default function Testimonials() {
               transform: `translateX(-${activeIndex * (cardWidth + gap)}px)`,
             }}
           >
-            {TESTIMONIALS.map((item, idx) => {
+            {testimonials.map((item, idx) => {
               const isPlaying = playingIndex === idx;
+              const videoUrl = item.videoUrl || "/video/video.mp4";
+              const posterUrl =
+                item.poster ||
+                "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&h=400&q=80";
+              const avatarUrl =
+                item.avatar ||
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80";
+
               return (
                 <div
-                  key={idx}
+                  key={item.id || idx}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
                   className="testimonial-card-item shrink-0 relative p-4 sm:p-6 bg-gradient-to-b from-[#4F46E5] to-[#001A49] rounded-[24px] border border-indigo-500/20 hover:border-indigo-400/40 hover:shadow-[0_20px_50px_rgba(79,70,231,0.22)] transition-colors duration-500 flex flex-col sm:flex-row gap-6 group h-[560px] sm:h-[480px] cursor-pointer"
@@ -312,7 +343,8 @@ export default function Testimonials() {
                   <div className="testimonial-video-box relative w-full sm:w-[285px] h-[230px] sm:h-full rounded-2xl overflow-hidden bg-black/40 border border-white/10 shrink-0 z-10 group/vid transition-transform duration-500 group-hover:scale-[1.01]">
                     {isPlaying ? (
                       <video
-                        src={item.videoUrl}
+                        key={videoUrl}
+                        src={videoUrl}
                         className="w-full h-full object-cover"
                         controls
                         autoPlay
@@ -321,7 +353,7 @@ export default function Testimonials() {
                     ) : (
                       <>
                         <img
-                          src={item.poster}
+                          src={posterUrl}
                           alt={item.name}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover/vid:scale-[1.03]"
                         />
@@ -349,7 +381,7 @@ export default function Testimonials() {
                     <div className="testimonial-author-group flex items-center gap-4 mt-6 sm:mt-0">
                       <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-blue-400/40 group-hover:scale-105 transition-all duration-300 bg-slate-900 shrink-0">
                         <img
-                          src={item.avatar}
+                          src={avatarUrl}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
@@ -369,7 +401,6 @@ export default function Testimonials() {
             })}
           </div>
         </div>
-
       </div>
     </section>
   );

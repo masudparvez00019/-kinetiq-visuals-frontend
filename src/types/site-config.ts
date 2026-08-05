@@ -44,6 +44,36 @@ export interface ServiceItem {
   gridClass?: string;
 }
 
+export interface TestimonialItem {
+  id?: string | number;
+  name: string;
+  role: string;
+  text: string;
+  avatar?: string | null;
+  videoUrl?: string | null;
+  poster?: string | null;
+}
+
+export interface ProcessStepItem {
+  id?: string | number;
+  num: string;
+  title: string;
+  desc: string;
+  image: string;
+}
+
+export interface FaqItem {
+  id?: string | number;
+  question: string;
+  answer: string;
+}
+
+export interface FooterNavLinkItem {
+  id?: string | number;
+  label: string;
+  href: string;
+}
+
 export interface SiteConfig {
   id: string;
   brandLogoUrl: string | null;
@@ -77,6 +107,41 @@ export interface SiteConfig {
   servicesCtaText: string;
   servicesCtaLink: string;
   servicesItems: ServiceItem[] | null;
+  testimonialsBadgeText: string;
+  testimonialsTitle: string;
+  testimonialsItems: TestimonialItem[] | null;
+  processBadgeText: string;
+  processTitleLine1: string;
+  processTitleLine2: string;
+  processTitleLine3: string;
+  processTitleLine4: string;
+  processTitleLine5: string;
+  processSubtitle: string;
+  processSteps: ProcessStepItem[] | null;
+  ctaSectionBadgeText: string;
+  ctaSectionTitle1: string;
+  ctaSectionTitle2: string;
+  ctaSectionTitle3: string;
+  ctaSectionDesc: string;
+  ctaSectionTags: string[] | null;
+  ctaSectionBtnText: string;
+  ctaSectionBtnLink: string;
+  faqBadgeLeftTitle: string;
+  faqBadgeLeftSubtitle: string;
+  faqBadgeRightTitle: string;
+  faqBadgeRightSubtitle: string;
+  faqTitleLine1: string;
+  faqTitleLine2: string;
+  faqItems: FaqItem[] | null;
+  footerTwitterUrl: string;
+  footerLinkedinUrl: string;
+  footerInstagramUrl: string;
+  footerTitleLine1: string;
+  footerTitleLine2: string;
+  footerTitleLine3: string;
+  footerBrandText: string;
+  footerCopyrightText: string;
+  footerNavLinks: FooterNavLinkItem[] | null;
   coursePriceCents: number;
   courseCurrency: string;
   coursePriceLabel: string | null;
