@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Calendar, Target, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { SiteConfig, CaseStudyItem } from "@/types/site-config";
+import { siteConfigService } from "@/services/site-config.service";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const CASE_STUDIES = [
+const DEFAULT_CASE_STUDIES: CaseStudyItem[] = [
   {
     id: 1,
     clientName: "Fashion Brand",
@@ -113,7 +115,12 @@ const CASE_STUDIES = [
   }
 ];
 
-export default function CaseStudies() {
+interface CaseStudiesProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CaseStudies({ initialConfig }: CaseStudiesProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -121,7 +128,19 @@ export default function CaseStudies() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const currentCase = CASE_STUDIES[activeIndex];
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const sectionTitle = config?.caseStudiesTitle || "Case Studies";
+  const sectionSubtitle = config?.caseStudiesSubtitle || "Real projects. Real growth. Real impact.";
+
+  const dynamicItems = config?.caseStudiesItems;
+  const caseStudies = Array.isArray(dynamicItems) && dynamicItems.length > 0 ? dynamicItems : DEFAULT_CASE_STUDIES;
+
+  const currentCase = caseStudies[activeIndex] || caseStudies[0] || DEFAULT_CASE_STUDIES[0];
 
   useGSAP(() => {
     // 1. Entrance Animations via ScrollTrigger
@@ -260,12 +279,12 @@ export default function CaseStudies() {
   };
 
   const handleNext = () => {
-    const nextIndex = (activeIndex + 1) % CASE_STUDIES.length;
+    const nextIndex = (activeIndex + 1) % caseStudies.length;
     handleSlideChange(nextIndex);
   };
 
   const handlePrev = () => {
-    const nextIndex = (activeIndex - 1 + CASE_STUDIES.length) % CASE_STUDIES.length;
+    const nextIndex = (activeIndex - 1 + caseStudies.length) % caseStudies.length;
     handleSlideChange(nextIndex);
   };
 
@@ -294,12 +313,12 @@ export default function CaseStudies() {
         {/* Section Heading */}
         <div className="case-header-title flex flex-col md:flex-row md:items-center gap-3 md:gap-4 select-none">
           <h2 className="font-heading font-normal text-3xl md:text-[40px] text-white tracking-wide">
-            Case Studies
+            {sectionTitle}
           </h2>
           <div className="flex items-center gap-3 text-white/90">
             <span className="w-2.5 h-2.5 bg-blue-500 shrink-0 hidden md:block" />
             <span className="font-syne text-[14px] md:text-[18px] tracking-normal opacity-90">
-              Real projects. Real growth. Real impact.
+              {sectionSubtitle}
             </span>
           </div>
         </div>
@@ -343,7 +362,7 @@ export default function CaseStudies() {
               
               {/* Left Column: Stats */}
               <div className="lg:col-span-3 grid grid-cols-3 lg:flex lg:flex-col lg:justify-between lg:items-start gap-4 lg:gap-0 lg:h-[300px]">
-                {currentCase.stats.map((stat, i) => (
+                {(currentCase.stats || []).map((stat, i) => (
                   <div key={i} className="case-stat-item flex flex-col gap-1.5 justify-center lg:justify-start">
                     <h3 className="font-satoshi font-light text-3xl md:text-[48px] text-[#89bdf2] leading-none">
                       {stat.value}
@@ -359,16 +378,16 @@ export default function CaseStudies() {
               <div className="lg:col-span-6 case-video-container">
                 <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black/40 border border-white/10 shadow-xl relative group cursor-pointer">
                   <video
+                    key={currentCase.videoSrc}
                     ref={videoRef}
+                    src={currentCase.videoSrc}
                     onClick={togglePlay}
                     loop
                     preload="none"
                     poster={currentCase.poster}
                     className="w-full h-full object-cover"
                     playsInline
-                  >
-                    <source src={currentCase.videoSrc} type="video/mp4" />
-                  </video>
+                  />
 
                   {/* Sleek Play Button Overlay (Glassmorphism design) */}
                   <div
@@ -396,7 +415,7 @@ export default function CaseStudies() {
 
               {/* Right Column: Tags */}
               <div className="lg:col-span-3 flex flex-wrap justify-center lg:flex-col lg:justify-between lg:items-end gap-3 lg:gap-0 lg:h-[300px]">
-                {currentCase.tags.map((tag, i) => (
+                {(currentCase.tags || []).map((tag, i) => (
                   <div
                     key={i}
                     className="case-tag-item case-gradient-btn text-white text-[14px] font-satoshi flex items-center justify-center rounded-[30px] shrink-0 w-full lg:w-[108px] h-[42px] hover:scale-[1.03] active:scale-98 transition-all duration-300 cursor-pointer select-none"
@@ -444,11 +463,17 @@ export default function CaseStudies() {
                 {/* User Avatar Ring */}
                 <div className="relative w-[120px] h-[120px] rounded-full border border-blue-500/30 flex items-center justify-center shrink-0">
                   <div className="w-[100px] h-[100px] rounded-full overflow-hidden bg-slate-800">
-                    <img
-                      src={currentCase.testimonial.avatar}
-                      alt={currentCase.testimonial.authorName}
-                      className="w-full h-full object-cover"
-                    />
+                    {currentCase.testimonial?.avatar ? (
+                      <img
+                        src={currentCase.testimonial.avatar}
+                        alt={currentCase.testimonial.authorName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-600/20 text-blue-400 text-xl font-bold">
+                        {currentCase.testimonial?.authorName?.charAt(0) || "C"}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -457,15 +482,15 @@ export default function CaseStudies() {
                   <div className="relative">
                     <span className="text-blue-500 text-[48px] font-serif leading-none absolute -top-4 -left-2 select-none opacity-80">“</span>
                     <p className="text-slate-300 text-sm md:text-base leading-relaxed pl-6 pt-1 font-satoshi">
-                      {currentCase.testimonial.quote}
+                      {currentCase.testimonial?.quote}
                     </p>
                   </div>
                   <div className="pl-6 mt-1 flex flex-col">
                     <span className="font-syne font-bold text-sm md:text-base text-blue-400 leading-none">
-                      {currentCase.testimonial.authorName}
+                      {currentCase.testimonial?.authorName}
                     </span>
                     <span className="text-[11px] text-slate-500 font-satoshi mt-1.5 tracking-wide uppercase leading-none">
-                      {currentCase.testimonial.authorTitle}
+                      {currentCase.testimonial?.authorTitle}
                     </span>
                   </div>
                 </div>
@@ -493,7 +518,7 @@ export default function CaseStudies() {
             </span>
             <span className="font-syne text-slate-700 text-lg leading-none">/</span>
             <span className="font-syne text-slate-500 text-lg leading-none">
-              {CASE_STUDIES.length}
+              {caseStudies.length}
             </span>
           </div>
 

@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { SiteConfig, PartnerLogoItem } from "@/types/site-config";
+import { siteConfigService } from "@/services/site-config.service";
 
 const SothebysLogo = () => (
   <div className="flex flex-col items-center justify-center text-white/60 hover:text-white transition-colors duration-300">
@@ -53,7 +55,7 @@ const KnightFrankLogo = () => (
   </div>
 );
 
-const BRANDS = [
+const DEFAULT_BRANDS = [
   { component: SothebysLogo },
   { component: CompassLogo },
   { component: ChristiesLogo },
@@ -62,7 +64,47 @@ const BRANDS = [
   { component: KnightFrankLogo },
 ];
 
-export default function TrustedBy() {
+interface TrustedByProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function TrustedBy({ initialConfig }: TrustedByProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const title = config?.trustedByTitle || "Recent clients & partners";
+  const dynamicLogos = config?.trustedByLogos;
+  const hasDynamicLogos = Array.isArray(dynamicLogos) && dynamicLogos.length > 0;
+
+  const renderLogoItem = (item: PartnerLogoItem, idx: number) => {
+    if (item.logoUrl) {
+      return (
+        <img
+          src={item.logoUrl}
+          alt={item.name || "Partner Logo"}
+          className="h-7 md:h-9 object-contain opacity-70 hover:opacity-100 transition-opacity duration-300"
+        />
+      );
+    }
+    return (
+      <div className="flex flex-col items-center justify-center text-white/60 hover:text-white transition-colors duration-300">
+        <span className="font-serif text-base md:text-lg tracking-wider font-semibold leading-none">
+          {item.name || item.textLogo}
+        </span>
+        {item.subtext && (
+          <span className="text-[7px] tracking-[0.2em] font-sans font-bold uppercase mt-1 text-white/50">
+            {item.subtext}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <section className="w-full py-16 bg-[#020205] border-y border-white/5 relative overflow-hidden">
       {/* Side Fade Overlays */}
@@ -71,32 +113,50 @@ export default function TrustedBy() {
 
       <div className="w-full flex flex-col items-center gap-10">
         <h2 className="font-syne font-bold text-[20px] md:text-2xl text-white text-center tracking-normal leading-8 md:leading-[32px] px-6">
-          Recent clients & partners
+          {title}
         </h2>
 
         {/* Marquee Container (Full Width Edge to Edge) */}
         <div className="w-full overflow-hidden relative flex marquee-container">
           {/* Loop twice to make it seamless with shrink-0 and w-max to prevent overlapping */}
           <div className="flex gap-16 md:gap-24 animate-marquee whitespace-nowrap items-center py-2 shrink-0 w-max pr-16 md:pr-24">
-            {BRANDS.map((brand, i) => (
-              <div
-                key={`b1-${i}`}
-                className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
-              >
-                <brand.component />
-              </div>
-            ))}
+            {hasDynamicLogos
+              ? (dynamicLogos as PartnerLogoItem[]).map((brand, i) => (
+                  <div
+                    key={`b1-${brand.id || i}`}
+                    className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
+                  >
+                    {renderLogoItem(brand, i)}
+                  </div>
+                ))
+              : DEFAULT_BRANDS.map((brand, i) => (
+                  <div
+                    key={`b1-${i}`}
+                    className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
+                  >
+                    <brand.component />
+                  </div>
+                ))}
           </div>
 
           <div className="flex gap-16 md:gap-24 animate-marquee whitespace-nowrap items-center py-2 shrink-0 w-max pr-16 md:pr-24" aria-hidden="true">
-            {BRANDS.map((brand, i) => (
-              <div
-                key={`b2-${i}`}
-                className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
-              >
-                <brand.component />
-              </div>
-            ))}
+            {hasDynamicLogos
+              ? (dynamicLogos as PartnerLogoItem[]).map((brand, i) => (
+                  <div
+                    key={`b2-${brand.id || i}`}
+                    className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
+                  >
+                    {renderLogoItem(brand, i)}
+                  </div>
+                ))
+              : DEFAULT_BRANDS.map((brand, i) => (
+                  <div
+                    key={`b2-${i}`}
+                    className="shrink-0 transition-opacity duration-300 opacity-80 hover:opacity-100"
+                  >
+                    <brand.component />
+                  </div>
+                ))}
           </div>
         </div>
       </div>

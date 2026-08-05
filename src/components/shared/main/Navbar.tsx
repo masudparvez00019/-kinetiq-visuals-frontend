@@ -7,16 +7,24 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { FiMenu, FiX } from "react-icons/fi";
 
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin();
 }
 
 export default function Navbar() {
   const navRef = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const [activeSection, setActiveSection] = useState("");
+
+  useEffect(() => {
+    siteConfigService.get().then(setConfig).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,6 +95,9 @@ export default function Navbar() {
     { scope: navRef }
   );
 
+  const logoText = config?.brandLogoText;
+  const logoUrl = config?.brandLogoUrl;
+
   return (
     <header
       ref={navRef}
@@ -102,16 +113,27 @@ export default function Navbar() {
         }`}
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group relative z-20">
-          <span
-            className={`font-logo font-normal tracking-normal leading-none text-white uppercase transition-all duration-500 ease-in-out ${
-              isScrolled
-                ? "text-xl md:text-2xl"
-                : "text-2xl md:text-[36px]"
-            }`}
-          >
-            KQ VISUALS
-          </span>
+        <Link href="/" className="flex items-center gap-3 group relative z-20">
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt={logoText || "Brand Logo"}
+              className={`object-contain transition-all duration-500 ${
+                isScrolled ? "h-6 md:h-8" : "h-8 md:h-10"
+              }`}
+            />
+          )}
+          {logoText && (
+            <span
+              className={`font-logo font-normal tracking-normal leading-none text-white uppercase transition-all duration-500 ease-in-out ${
+                isScrolled
+                  ? "text-xl md:text-2xl"
+                  : "text-2xl md:text-[36px]"
+              }`}
+            >
+              {logoText}
+            </span>
+          )}
         </Link>
 
         {/* Desktop Navigation & CTA */}

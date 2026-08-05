@@ -7,16 +7,35 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { FiArrowUpRight } from "react-icons/fi";
 
-export default function HeroSection() {
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
+
+interface HeroSectionProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function HeroSection({ initialConfig }: HeroSectionProps) {
+  const [config, setConfig] = React.useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const testimonialRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const videoUrl = config?.heroVideoUrl || "/video/video.mp4";
+  const posterUrl = config?.heroPosterUrl || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80";
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    video.play().catch(() => {});
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -34,7 +53,7 @@ export default function HeroSection() {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [videoUrl]);
 
   useGSAP(() => {
     // Split text or animate words/chars
@@ -78,7 +97,7 @@ export default function HeroSection() {
       yoyo: true,
       ease: "sine.inOut",
     });
-  }, { scope: containerRef });
+  }, { scope: containerRef, dependencies: [videoUrl] });
 
   // Mouse move tilt effect on testimonial card
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -107,6 +126,21 @@ export default function HeroSection() {
     });
   };
 
+  const title1 = config?.homeHeroTitle1 || "Luxury Real Estate";
+  const title2 = config?.homeHeroTitle2 || "Videos That Sell";
+  const title3 = config?.homeHeroTitle3 || "Faster";
+
+  const ctaText = config?.heroCtaText || "Book a Free Strategy Call";
+  const ctaLink = config?.heroCtaLink || "/contact";
+
+  const happyClientsText = config?.heroHappyClientsText || "60+ Happy Clients";
+
+  const quoteText = config?.heroQuoteText || "FAST DELIVERY, CLEAR COMMUNICATION, AND EDITS THAT ACTUALLY PERFORM.";
+  const authorName = config?.heroQuoteAuthorName || config?.mentorName || "Jowel Mahmud";
+  const authorTitle = config?.heroQuoteAuthorTitle || config?.mentorTitle || "Mentor | Founder & CEO";
+  const companyName = config?.heroQuoteCompany || "KinetiQ Visuals";
+  const authorImage = config?.heroQuoteAuthorImage || config?.mentorAvatarUrl || "/jowel-avatar.png";
+
   return (
     <section
       id="hero"
@@ -115,16 +149,16 @@ export default function HeroSection() {
     >
       {/* Background Video */}
       <video
+        key={videoUrl}
         ref={videoRef}
+        src={videoUrl}
         autoPlay
         loop
         muted
         playsInline
-        poster="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80"
+        poster={posterUrl}
         className="hero-video-bg absolute inset-0 w-full h-full object-cover z-0 opacity-0 pointer-events-none"
-      >
-        <source src="/video/video.mp4" type="video/mp4" />
-      </video>
+      />
 
       {/* Dark Overlay with subtle glows */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#020205]/40 via-[#020205]/75 to-[#020205] z-10 pointer-events-none" />
@@ -139,15 +173,15 @@ export default function HeroSection() {
             className="font-heading font-normal text-4xl sm:text-[50px] md:text-[62px] leading-[1.2] sm:leading-[58px] md:leading-[70px] tracking-normal text-white"
           >
             <span className="block overflow-hidden py-1">
-              <span className="block animate-line lg:whitespace-nowrap">Luxury Real Estate</span>
+              <span className="block animate-line lg:whitespace-nowrap">{title1}</span>
             </span>
             <span className="block overflow-hidden py-1">
               <span className="block animate-line lg:whitespace-nowrap">
-                Videos That Sell
+                {title2}
               </span>
             </span>
             <span className="block overflow-hidden py-1">
-              <span className="block animate-line lg:whitespace-nowrap">Faster</span>
+              <span className="block animate-line lg:whitespace-nowrap">{title3}</span>
             </span>
           </h1>
 
@@ -156,14 +190,14 @@ export default function HeroSection() {
             <div className="animate-cta-item flex items-center gap-3">
               {/* Primary Call to Action */}
               <Link
-                href="/contact"
+                href={ctaLink}
                 className="px-8 py-3.5 bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white rounded-full font-satoshi font-semibold text-sm tracking-wide hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300"
               >
-                Book a Free Strategy Call
+                {ctaText}
               </Link>
               {/* Arrow Circle Button */}
               <Link
-                href="/contact"
+                href={ctaLink}
                 className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white flex items-center justify-center hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300"
               >
                 <FiArrowUpRight size={20} />
@@ -197,7 +231,7 @@ export default function HeroSection() {
                 </div>
               </div>
               <span className="font-heading font-normal text-white text-xs md:text-sm tracking-wide">
-                60+ Happy Clients
+                {happyClientsText}
               </span>
             </div>
           </div>
@@ -215,8 +249,8 @@ export default function HeroSection() {
             {/* Testimonial Author Image */}
             <div className="w-20 md:w-[110px] h-full shrink-0 rounded-[20px] border-2 border-white overflow-hidden bg-slate-900 shadow-lg">
               <img
-                src="/jowel-avatar.png"
-                alt="Jowel Mahmud"
+                src={authorImage}
+                alt={authorName}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -227,16 +261,16 @@ export default function HeroSection() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
               
               <p className="font-heading font-normal text-[9px] md:text-[11px] leading-relaxed tracking-wider text-white uppercase">
-                "FAST DELIVERY, CLEAR COMMUNICATION, AND EDITS THAT ACTUALLY PERFORM."
+                "{quoteText}"
               </p>
               <div className="flex flex-col mt-0.5">
                 <h4 className="font-heading font-normal text-xs md:text-sm text-[#2C82F5]">
-                  Jowel Mahmud
+                  {authorName}
                 </h4>
                 <p className="font-heading font-normal text-[7px] md:text-[9px] text-white/70 mt-1 leading-normal">
-                  Mentor | Founder & CEO
+                  {authorTitle}
                   <br />
-                  KinetiQ Visuals
+                  {companyName}
                 </p>
               </div>
             </div>

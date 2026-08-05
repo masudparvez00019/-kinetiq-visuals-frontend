@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight, Play } from "lucide-react";
+import { SiteConfig, ServiceItem } from "@/types/site-config";
+import { siteConfigService } from "@/services/site-config.service";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const SERVICES = [
+const DEFAULT_SERVICES: ServiceItem[] = [
   {
     title: "Social Media Reels Editing",
     price: "$249 / project",
@@ -97,8 +99,25 @@ const SERVICES_SPOTLIGHT_CSS = `
   }
 `;
 
-export default function ServicesSection() {
+interface ServicesSectionProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function ServicesSection({ initialConfig }: ServicesSectionProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const title = config?.servicesTitle || "Video Editing Services Built Around Your Goals";
+  const ctaText = config?.servicesCtaText || "Book A Service Today";
+  const ctaLink = config?.servicesCtaLink || "/contact";
+  const dynamicServices = config?.servicesItems;
+  const services = Array.isArray(dynamicServices) && dynamicServices.length > 0 ? dynamicServices : DEFAULT_SERVICES;
 
   useGSAP(() => {
     // Set static 3D perspective to avoid inline style calculation lag in mouse move
@@ -195,20 +214,20 @@ export default function ServicesSection() {
         
         {/* Centered Section Header */}
         <div className="flex flex-col gap-4 text-center items-center max-w-3xl mx-auto select-none">
-          <h2 className="services-header-title font-heading font-normal text-3xl md:text-[40px] text-white leading-tight tracking-wide">
-            Video Editing Services <br /> Built Around Your Goals
+          <h2 className="services-header-title font-heading font-normal text-3xl md:text-[40px] text-white leading-tight tracking-wide whitespace-pre-line">
+            {title}
           </h2>
           
           <div className="services-header-cta flex items-center gap-3 justify-center mt-2">
             <Link
-              href="/contact"
+              href={ctaLink}
               className="px-8 py-3.5 bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white rounded-full font-satoshi font-semibold text-sm tracking-wide hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
             >
-              Book A Service Today
+              {ctaText}
             </Link>
             
             <Link
-              href="/contact"
+              href={ctaLink}
               className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] text-white flex items-center justify-center hover:opacity-95 hover:shadow-[0_0_20px_rgba(44,130,245,0.4)] active:scale-95 transition-all duration-300 cursor-pointer shrink-0"
             >
               <ArrowUpRight size={20} />
@@ -218,12 +237,12 @@ export default function ServicesSection() {
 
         {/* 6-Column Grid Layout */}
         <div className="services-grid grid grid-cols-1 md:grid-cols-6 gap-6 w-full">
-          {SERVICES.map((srv, idx) => (
+          {services.map((srv, idx) => (
             <div
-              key={idx}
+              key={srv.id || idx}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className={`service-card-item group ${srv.gridClass} bg-[#000716] border border-blue-500/15 hover:border-blue-500/30 rounded-[24px] p-6 md:p-8 flex flex-col items-center justify-between gap-5 shadow-xl relative hover:shadow-[0_20px_50px_rgba(44,130,245,0.12)] transition-colors duration-500 overflow-hidden cursor-pointer`}
+              className={`service-card-item group ${srv.gridClass || "md:col-span-2"} bg-[#000716] border border-blue-500/15 hover:border-blue-500/30 rounded-[24px] p-6 md:p-8 flex flex-col items-center justify-between gap-5 shadow-xl relative hover:shadow-[0_20px_50px_rgba(44,130,245,0.12)] transition-colors duration-500 overflow-hidden cursor-pointer`}
             >
               {/* Local Cursor Spotlight Glow */}
               <div className="service-cursor-glow-element" />

@@ -1,19 +1,41 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FaPlay, FaPause } from "react-icons/fa";
+import { SiteConfig } from "@/types/site-config";
+import { siteConfigService } from "@/services/site-config.service";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function ShowcaseSection() {
+interface ShowcaseSectionProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function ShowcaseSection({ initialConfig }: ShowcaseSectionProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const title = config?.showcaseTitle || "See What Your Content Could Become";
+  const subtitle =
+    config?.showcaseSubtitle ||
+    "From short–form social content to high–end commercial edits, explore our work and discover how strategic editing transforms ordinary footage into engaging brand assets.";
+  const videoUrl = config?.showcaseVideoUrl || "/video/video.mp4";
+  const posterUrl =
+    config?.showcasePosterUrl ||
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80";
 
   useGSAP(() => {
     // Header fade-up
@@ -76,31 +98,27 @@ export default function ShowcaseSection() {
       <div className="max-w-6xl mx-auto w-full flex flex-col items-center gap-16 relative z-10">
         {/* Section Header */}
         <div className="text-center flex flex-col gap-6 max-w-6xl w-full">
-          <h2 className="showcase-text-item font-heading font-normal text-2xl sm:text-3xl md:text-[40px] lg:text-[48px] text-white leading-tight md:leading-[56px] tracking-wide">
-            See What Your Content Could <br className="hidden md:inline" /> Become
+          <h2 className="showcase-text-item font-heading font-normal text-2xl sm:text-3xl md:text-[40px] lg:text-[48px] text-white leading-tight md:leading-[56px] tracking-wide whitespace-pre-line">
+            {title}
           </h2>
-          <p className="showcase-text-item text-[#F2F5FA] text-xs md:text-[16px] leading-relaxed md:leading-[24px] max-w-[893px] mx-auto font-heading">
-            From short–form social content to high–end commercial edits, explore our{" "}
-            <br className="hidden md:inline" />
-            work and discover how strategic editing transforms ordinary footage into{" "}
-            <br className="hidden md:inline" />
-            engaging brand assets.
+          <p className="showcase-text-item text-[#F2F5FA] text-xs md:text-[16px] leading-relaxed md:leading-[24px] max-w-[893px] mx-auto font-heading whitespace-pre-line">
+            {subtitle}
           </p>
         </div>
 
         {/* Video Player */}
         <div className="showcase-video-wrapper w-full aspect-video rounded-3xl overflow-hidden glass-card border border-white/10 shadow-2xl relative group cursor-pointer">
           <video
+            key={videoUrl}
             ref={videoRef}
+            src={videoUrl}
             onClick={togglePlay}
             loop
             preload="none"
-            poster="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80"
+            poster={posterUrl}
             className="w-full h-full object-cover"
             playsInline
-          >
-            <source src="/video/video.mp4" type="video/mp4" />
-          </video>
+          />
 
           {/* Custom Overlay (Play/Pause indicator) */}
           <div
