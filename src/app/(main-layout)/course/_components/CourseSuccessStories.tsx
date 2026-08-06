@@ -6,6 +6,9 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TrendingUp } from "lucide-react";
 
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig, CourseSuccessItem } from "@/types/site-config";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -18,7 +21,7 @@ const STORIES = [
     rating: 5,
     stats: [
       { value: "+250%", label: "Client Growth" },
-      { value: "$0-%7K", label: "Monthly Revenue" },
+      { value: "$0-$7K", label: "Monthly Revenue" },
     ],
   },
   {
@@ -77,7 +80,37 @@ function TiltCard3D({ children, className = "" }: { children: React.ReactNode; c
   );
 }
 
-export default function CourseSuccessStories() {
+interface CourseSuccessStoriesProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseSuccessStories({ initialConfig }: CourseSuccessStoriesProps) {
+  const [config, setConfig] = React.useState<SiteConfig | null>(initialConfig || null);
+
+  React.useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.courseSuccessBadgeText || "Success Stories";
+  const title1 = config?.courseSuccessTitleLine1 || "Real Student Results.";
+  const title2 = config?.courseSuccessTitleLine2 || "Real Impact.";
+  const subtitle = config?.courseSuccessSubtitle || "See how creators transformed their skills and landed real projects after the course.";
+
+  const storiesList = Array.isArray(config?.courseSuccessItems) && config.courseSuccessItems.length > 0
+    ? config.courseSuccessItems.map((item) => ({
+        name: item.name || "STUDENT NAME",
+        photo: item.image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80",
+        quote: item.quote || "The course completely changed how I approach client projects and editing workflows.",
+        rating: item.stars || 5,
+        stats: [
+          { value: item.metric1Value || "+200%", label: item.metric1Label || "Client Growth" },
+          { value: item.metric2Value || "$1K-$5K", label: item.metric2Label || "Monthly Revenue" },
+        ],
+      }))
+    : STORIES;
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -114,20 +147,20 @@ export default function CourseSuccessStories() {
           <div className="flex items-center gap-2.5">
             <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
             <span className="font-heading font-normal text-xs md:text-sm text-white tracking-normal select-none">
-              Success Stories
+              {badgeText}
             </span>
           </div>
           <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[48px] text-white leading-tight tracking-normal max-w-[850px] mt-2">
-            Real Student Results. Real Impact.
+            {title1} {title2}
           </h2>
           <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[620px]">
-            See how creators transformed their skills and landed real projects after the course.
+            {subtitle}
           </p>
         </div>
 
         {/* Cards Grid */}
         <div className="success-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {STORIES.map((story, i) => (
+          {storiesList.map((story, i) => (
             <TiltCard3D
               key={i}
               className="success-card group flex flex-col justify-between p-5 md:p-6 rounded-[24px] bg-[#060c17] border border-[#14243b] transition-all duration-300 hover:border-blue-500/50 hover:shadow-[0_15px_40px_rgba(0,100,255,0.2)] cursor-pointer"

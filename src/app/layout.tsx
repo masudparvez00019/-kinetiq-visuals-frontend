@@ -4,6 +4,8 @@ import "./globals.css";
 import LenisProvider from "@/providers/lenis-provider";
 import { AppStoreProvider } from "@/context/store";
 
+import { Toaster } from "sonner";
+
 const syne = Syne({
   variable: "--font-syne-google",
   subsets: ["latin"],
@@ -34,6 +36,7 @@ export default function RootLayout({
         <AppStoreProvider>
           <LenisProvider>
             {children}
+            <Toaster position="top-right" richColors theme="dark" closeButton />
           </LenisProvider>
         </AppStoreProvider>
       </body>

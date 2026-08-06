@@ -74,6 +74,55 @@ export interface FooterNavLinkItem {
   href: string;
 }
 
+export interface CourseHeroStatItem {
+  id?: string;
+  icon?: string;
+  value: string;
+  label: string;
+}
+
+export interface CourseLearnItem {
+  id?: string;
+  number: string;
+  title: string;
+  lessons: string;
+  description: string;
+  icon?: string;
+}
+
+export interface CourseCurriculumModuleItem {
+  id?: string;
+  num: string;
+  title: string;
+  sub: string;
+  duration: string;
+}
+
+export interface CourseToolItem {
+  id?: string;
+  name: string;
+  iconType?: string;
+  iconUrl?: string | null;
+}
+
+export interface CourseSuccessItem {
+  id?: string;
+  name: string;
+  quote: string;
+  stars?: number;
+  metric1Value?: string;
+  metric1Label?: string;
+  metric2Value?: string;
+  metric2Label?: string;
+  image?: string | null;
+}
+
+export interface CourseFaqItem {
+  id?: string;
+  question: string;
+  answer: string;
+}
+
 export interface SiteConfig {
   id: string;
   brandLogoUrl: string | null;
@@ -139,13 +188,64 @@ export interface SiteConfig {
   footerTitleLine1: string;
   footerTitleLine2: string;
   footerTitleLine3: string;
+  footerBrandLogoUrl: string | null;
   footerBrandText: string;
   footerCopyrightText: string;
   footerNavLinks: FooterNavLinkItem[] | null;
+  productsHeroTitle1: string;
+  productsHeroTitle2: string;
+  productsHeroTitle3: string;
+  productsHeroFeature1Title: string;
+  productsHeroFeature1Desc: string;
+  productsHeroFeature2Title: string;
+  productsHeroFeature2Desc: string;
+  productsTrustedBadgeText: string;
+  productsTrustedTitleLine1: string;
+  productsTrustedTitleLine2: string;
+  productsTrustedTitleLine3: string;
+  productsTrustedTitleLine4: string;
+  productsTestimonialsItems: TestimonialItem[] | null;
+  productsFaqTitleLine1: string;
+  productsFaqTitleLine2: string;
+  productsFaqItems: FaqItem[] | null;
+  courseHeroBadgeText: string;
+  courseHeroTitle1: string;
+  courseHeroTitle2: string;
+  courseHeroTitle3: string;
+  courseCtaText: string;
+  courseCtaLink: string;
+  courseStudentsText: string;
+  courseRatingText: string;
+  courseVideoUrl: string | null;
+  coursePosterUrl: string | null;
+  courseHeroStats: CourseHeroStatItem[] | null;
+  courseLearnBadgeText: string;
+  courseLearnTitleLine1: string;
+  courseLearnTitleLine2: string;
+  courseLearnSubtitle: string;
+  courseLearnItems: CourseLearnItem[] | null;
+  courseCurriculumBadgeText: string;
+  courseCurriculumTitleLine1: string;
+  courseCurriculumTitleLine2: string;
+  courseCurriculumTitleLine3: string;
+  courseCurriculumSubtitle: string;
+  courseCurriculumModules: CourseCurriculumModuleItem[] | null;
+  courseCurriculumPerks: string[] | null;
+  courseCurriculumCtaDesc: string;
+  courseCurriculumCtaBtnText: string;
+  courseCurriculumCtaBtnLink: string;
+  courseToolsTitle: string;
+  courseToolsItems: CourseToolItem[] | null;
+  courseSuccessBadgeText: string;
+  courseSuccessTitleLine1: string;
+  courseSuccessTitleLine2: string;
+  courseSuccessSubtitle: string;
+  courseSuccessItems: CourseSuccessItem[] | null;
   coursePriceCents: number;
   courseCurrency: string;
   coursePriceLabel: string | null;
   courseDescription: string;
+  mentorBadgeText: string;
   mentorName: string;
   mentorTitle: string;
   mentorBio: string;
@@ -153,8 +253,30 @@ export interface SiteConfig {
   mentorExperience: string;
   mentorProjects: string;
   mentorStudents: string;
+  courseIncludedBadgeText: string;
+  courseIncludedTitle: string;
+  courseIncludedSubtitle: string;
+  courseIncludedItems: string[] | null;
+  courseIncludedCtaBtnText: string;
+  courseIncludedCtaBtnLink: string;
+  courseFaqTitleLine1: string;
+  courseFaqTitleLine2: string;
+  courseFaqItems: CourseFaqItem[] | null;
   contactEmail: string;
   contactPhone: string;
+  contactHeroTitle: string;
+  contactHeroSubtitle: string;
+  contactFormTitle: string;
+  contactFormSubtitle: string;
+  contactFaqLinkText: string;
+  contactPersonPhotoUrl: string | null;
+  contactPersonName: string;
+  contactPersonTitle: string;
+  contactPersonDesc: string;
+  contactFormBtnText: string;
+  contactFaqTitleLine1: string;
+  contactFaqTitleLine2: string;
+  contactFaqItems: CourseFaqItem[] | null;
   updatedAt: string;
 }
 

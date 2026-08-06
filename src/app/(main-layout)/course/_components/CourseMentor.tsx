@@ -5,20 +5,40 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAppStore } from "@/context/store";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export default function CourseMentor() {
-  const { siteConfig } = useAppStore();
-  const containerRef = useRef<HTMLDivElement>(null);
+interface CourseMentorProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseMentor({ initialConfig }: CourseMentorProps) {
+  const { siteConfig: appStoreConfig } = useAppStore();
+  const [config, setConfig] = React.useState<SiteConfig | null>(initialConfig || null);
+
+  React.useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.mentorBadgeText || "Your Mentor";
+  const mentorName = config?.mentorName || appStoreConfig?.mentorName || "Jowel Mahmud";
+  const mentorTitle = config?.mentorTitle || appStoreConfig?.mentorTitle || "Founder Of 'KinetiQ Visuals'";
+  const mentorBio = config?.mentorBio || appStoreConfig?.mentorBio || "I've helped 100+ businesses and creators elevate their brand with cinematic videos that drive results. Now I'm teaching the exact system I use.";
+  const avatarUrl = config?.mentorAvatarUrl || "/jowel-avatar.png";
 
   const MENTOR_STATS = [
-    { value: siteConfig.mentorExp || "6+", label: "Years Experience" },
-    { value: siteConfig.mentorProj || "100+", label: "Projects Delivered" },
-    { value: siteConfig.mentorStud || "1200+", label: "Students Trained" },
+    { value: config?.mentorExperience || appStoreConfig?.mentorExp || "6+", label: "Years Experience" },
+    { value: config?.mentorProjects || appStoreConfig?.mentorProj || "100+", label: "Projects Delivered" },
+    { value: config?.mentorStudents || appStoreConfig?.mentorStud || "1200+", label: "Students Trained" },
   ];
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
     gsap.fromTo(
@@ -96,8 +116,8 @@ export default function CourseMentor() {
                 {/* Rich Deep Blue Radial Glow behind head */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,_#0044cc_0%,_#021235_55%,_#040814_100%)] opacity-95 z-0" />
                 <img
-                  src="/jowel-avatar.png"
-                  alt={siteConfig.mentorName || "Jowel Mahmud"}
+                  src={avatarUrl}
+                  alt={mentorName}
                   className="absolute inset-0 w-full h-full object-cover object-top opacity-95 z-10 transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
@@ -110,23 +130,23 @@ export default function CourseMentor() {
               <div className="flex items-center gap-2.5">
                 <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
                 <span className="font-heading font-normal text-xs md:text-sm text-white tracking-normal select-none">
-                  Your Mentor
+                  {badgeText}
                 </span>
               </div>
 
               {/* Mentor Name */}
               <h2 className="font-heading font-normal text-3xl sm:text-4xl md:text-[48px] text-white leading-tight tracking-normal">
-                {siteConfig.mentorName || "Jowel Mahmud"}
+                {mentorName}
               </h2>
 
               {/* Title / Role */}
               <p className="font-satoshi font-semibold text-sm md:text-base text-[#0080ff]">
-                {siteConfig.mentorTitle || "Founder Of 'KinetiQ Visuals'"}
+                {mentorTitle}
               </p>
 
               {/* Bio Description */}
               <p className="font-satoshi font-light text-xs md:text-sm text-slate-300 leading-relaxed max-w-[520px]">
-                {siteConfig.mentorBio || "I've helped 100+ businesses and creators elevate their brand with cinematic videos that drive results. Now I'm teaching the exact system I use."}
+                {mentorBio}
               </p>
 
               {/* Bottom Stats Card */}

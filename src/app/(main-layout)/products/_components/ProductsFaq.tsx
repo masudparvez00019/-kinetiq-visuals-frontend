@@ -6,11 +6,15 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FiPlus, FiMinus } from "react-icons/fi";
 
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 export interface FaqItem {
+  id?: string;
   question: string;
   answer: string;
 }
@@ -37,10 +41,43 @@ const DEFAULT_FAQS: FaqItem[] = [
 interface ProductsFaqProps {
   faqs?: FaqItem[];
   gradientIdPrefix?: string;
+  initialConfig?: SiteConfig | null;
+  useCmsCourseFaq?: boolean;
+  useCmsContactFaq?: boolean;
 }
 
-export default function ProductsFaq({ faqs, gradientIdPrefix = "products" }: ProductsFaqProps) {
-  const FAQS = faqs ?? DEFAULT_FAQS;
+export default function ProductsFaq({ faqs, gradientIdPrefix = "products", initialConfig, useCmsCourseFaq, useCmsContactFaq }: ProductsFaqProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const titleLine1 = useCmsContactFaq
+    ? (config?.contactFaqTitleLine1 || "Have any questions?")
+    : useCmsCourseFaq
+    ? (config?.courseFaqTitleLine1 || "Have any questions?")
+    : (config?.productsFaqTitleLine1 || "Have any questions?");
+  const titleLine2 = useCmsContactFaq
+    ? (config?.contactFaqTitleLine2 || "Read popular answers below")
+    : useCmsCourseFaq
+    ? (config?.courseFaqTitleLine2 || "Read popular answers below")
+    : (config?.productsFaqTitleLine2 || "Read popular answers below");
+
+  const FAQS: FaqItem[] = useCmsContactFaq
+    ? (Array.isArray(config?.contactFaqItems) && config.contactFaqItems.length > 0
+        ? (config.contactFaqItems as FaqItem[])
+        : (faqs ?? DEFAULT_FAQS))
+    : useCmsCourseFaq
+    ? (Array.isArray(config?.courseFaqItems) && config.courseFaqItems.length > 0
+        ? (config.courseFaqItems as FaqItem[])
+        : (faqs ?? DEFAULT_FAQS))
+    : (Array.isArray(config?.productsFaqItems) && config.productsFaqItems.length > 0
+        ? (config.productsFaqItems as FaqItem[])
+        : (faqs ?? DEFAULT_FAQS));
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(0); // Open first one by default as shown in the UI image
   const answerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -101,19 +138,12 @@ export default function ProductsFaq({ faqs, gradientIdPrefix = "products" }: Pro
       }
     }
 
-    // Animate opening of the new accordion
     if (isOpening) {
-      const curAnswer = answerRefs.current[idx];
-      if (curAnswer) {
-        gsap.set(curAnswer, { height: "auto" });
-        const height = curAnswer.scrollHeight;
-        gsap.fromTo(
-          curAnswer,
-          { height: 0, opacity: 0 },
-          { height: height, opacity: 1, duration: 0.5, ease: "power3.out" }
-        );
-      }
       setOpenIndex(idx);
+      const nextAnswer = answerRefs.current[idx];
+      if (nextAnswer) {
+        gsap.to(nextAnswer, { height: "auto", opacity: 1, duration: 0.4, ease: "power2.inOut" });
+      }
     } else {
       setOpenIndex(null);
     }
@@ -126,8 +156,8 @@ export default function ProductsFaq({ faqs, gradientIdPrefix = "products" }: Pro
         {/* Section Header */}
         <div className="text-center flex flex-col gap-4 items-center select-none products-faq-header">
           <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[40px] text-white leading-tight tracking-wide">
-            Have any questions? <br />
-            Read popular answers below
+            {titleLine1} <br />
+            {titleLine2}
           </h2>
         </div>
 

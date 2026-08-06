@@ -1,23 +1,44 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
 
-const INCLUDES = [
-  "Lifetime Access",
-  "Downloadable Assets",
-  "Project Files",
-  "Future Updates",
-  "Community Assets",
-  "Certification",
-];
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
-export default function CourseIncluded() {
+interface CourseIncludedProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseIncluded({ initialConfig }: CourseIncludedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.courseIncludedBadgeText || "Included in";
+  const title = config?.courseIncludedTitle || "What's Included in This Course";
+  const subtitle =
+    config?.courseIncludedSubtitle ||
+    "Unlock your video editing journey with Lifetime Access, Downloadable Assets, and real-world Project Files. Get Free Future Updates, access exclusive Community Assets, and earn a Certification upon completion.";
+  const ctaBtnText = config?.courseIncludedCtaBtnText || "Enroll Now";
+  const ctaBtnLink = config?.courseIncludedCtaBtnLink || "/contact";
+
+  const INCLUDES: string[] =
+    Array.isArray(config?.courseIncludedItems) && config.courseIncludedItems.length > 0
+      ? config.courseIncludedItems
+      : ["Lifetime Access", "Downloadable Assets", "Project Files", "Future Updates", "Community Assets", "Certification"];
 
   useGSAP(() => {
     gsap.fromTo(
@@ -62,18 +83,18 @@ export default function CourseIncluded() {
           <div className="flex items-center gap-2.5">
             <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
             <span className="font-heading font-normal text-xs md:text-sm text-white tracking-normal select-none">
-              Included in
+              {badgeText}
             </span>
           </div>
 
           {/* Title */}
           <h2 className="font-heading font-normal text-3xl sm:text-4xl md:text-[52px] text-white leading-tight tracking-normal mt-1">
-            What's Included in This Course
+            {title}
           </h2>
 
           {/* Subtitle */}
           <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[760px] text-center mt-1">
-            Unlock your video editing journey with Lifetime Access, Downloadable Assets, and real-world Project Files. Get Free Future Updates, access exclusive Community Assets, and earn a Certification upon completion.
+            {subtitle}
           </p>
         </div>
 
@@ -119,10 +140,16 @@ export default function CourseIncluded() {
 
         {/* CTA Buttons */}
         <div className="included-cta flex items-center gap-3.5 mt-2">
-          <Link href="/contact" className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-10 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
-            Enroll Now
+          <Link
+            href={ctaBtnLink}
+            className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-10 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center"
+          >
+            {ctaBtnText}
           </Link>
-          <Link href="/contact" className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
+          <Link
+            href={ctaBtnLink}
+            className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0"
+          >
             <ArrowUpRight className="w-5 h-5 text-white" />
           </Link>
         </div>

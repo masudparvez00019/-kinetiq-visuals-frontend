@@ -1,11 +1,23 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
 
 export default function ContactHero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+
+  useEffect(() => {
+    siteConfigService.get().then(setConfig).catch(() => {});
+  }, []);
+
+  const heroTitle = config?.contactHeroTitle || "Questions? Ideas? Let's Connect.";
+  const heroSubtitle =
+    config?.contactHeroSubtitle ||
+    "Every great project starts with a conversation. If you're looking for professional video editing, creative support, or simply want to explore what's possible, send us a message. We're always happy to help.";
 
   useGSAP(() => {
     const tl = gsap.timeline();
@@ -46,12 +58,10 @@ export default function ContactHero() {
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto w-full flex flex-col items-center text-center gap-5">
         <h1 className="contact-hero-title font-heading font-normal text-2xl sm:text-3xl md:text-[42px] lg:text-[46px] text-white leading-[1.18] tracking-normal text-center">
-          <span className="inline-block">Questions? Ideas? Let's</span>
-          <br />
-          <span className="inline-block">Connect.</span>
+          {heroTitle}
         </h1>
         <p className="contact-hero-desc font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed max-w-[660px] text-center mt-1">
-          Every great project starts with a conversation. If you're looking for professional video editing, creative support, or simply want to explore what's possible, send us a message. We're always happy to help.
+          {heroSubtitle}
         </p>
       </div>
     </section>

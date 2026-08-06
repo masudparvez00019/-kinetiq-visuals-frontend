@@ -32,9 +32,38 @@ const PRODUCTS_STYLE_CSS = `
   }
 `;
 
-export default function ProductsHero() {
+import { useState, useEffect } from "react";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
+
+interface ProductsHeroProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function ProductsHero({ initialConfig }: ProductsHeroProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
   const visualsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const title1 = config?.productsHeroTitle1 || "Creative Assets & Digital";
+  const title2 = config?.productsHeroTitle2 || "Products, Crafted for";
+  const title3 = config?.productsHeroTitle3 || "Impact";
+
+  const feature1Title = config?.productsHeroFeature1Title || "Premium Creative Assets";
+  const feature1Desc =
+    config?.productsHeroFeature1Desc ||
+    "Access high-quality motion graphics, transitions, sound effects, and visual elements that elevate every video.";
+
+  const feature2Title = config?.productsHeroFeature2Title || "Platform-Optimized Content";
+  const feature2Desc =
+    config?.productsHeroFeature2Desc ||
+    "Videos tailored for YouTube, TikTok, Instagram, Meta Ads, and other platforms. From a few videos per month to high-volume content workflows.";
 
   useGSAP(() => {
     // Sequence entrance animation
@@ -115,9 +144,9 @@ export default function ProductsHero() {
           
           {/* Main Hero Headline */}
           <h1 className="products-title font-heading font-normal text-[26px] xs:text-[32px] sm:text-[44px] md:text-[52px] lg:text-[60px] leading-[1.2] lg:leading-[1.15] tracking-wide text-white select-none">
-            <span className="lg:whitespace-nowrap block">Creative Assets & Digital</span>
-            <span className="lg:whitespace-nowrap block">Products, Crafted for</span>
-            <span className="lg:whitespace-nowrap block text-white">Impact</span>
+            <span className="lg:whitespace-nowrap block">{title1}</span>
+            <span className="lg:whitespace-nowrap block">{title2}</span>
+            <span className="lg:whitespace-nowrap block text-white">{title3}</span>
           </h1>
 
           {/* Sub-Features 2-Column Grid */}
@@ -126,20 +155,20 @@ export default function ProductsHero() {
             {/* Feature 1 */}
             <div className="products-feature-item flex flex-col gap-3.5">
               <h2 className="font-heading font-normal text-base md:text-lg text-white tracking-wide lg:whitespace-nowrap">
-                Premium Creative Assets
+                {feature1Title}
               </h2>
               <p className="font-satoshi text-xs md:text-sm text-slate-400 leading-relaxed font-light">
-                Access high-quality motion graphics, transitions, sound effects, and visual elements that elevate every video.
+                {feature1Desc}
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="products-feature-item flex flex-col gap-3.5">
               <h2 className="font-heading font-normal text-base md:text-lg text-white tracking-wide lg:whitespace-nowrap">
-                Platform-Optimized Content
+                {feature2Title}
               </h2>
               <p className="font-satoshi text-xs md:text-sm text-slate-400 leading-relaxed font-light">
-                Videos tailored for YouTube, TikTok, Instagram, Meta Ads, and other platforms. From a few videos per month to high-volume content workflows.
+                {feature2Desc}
               </p>
             </div>
 

@@ -91,10 +91,35 @@ const PRODUCTS_TESTIMONIALS_SPOTLIGHT_CSS = `
   }
 `;
 
-export default function ProductsTestimonials() {
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig, TestimonialItem } from "@/types/site-config";
+
+interface ProductsTestimonialsProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function ProductsTestimonials({ initialConfig }: ProductsTestimonialsProps) {
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [windowWidth, setWindowWidth] = useState(0);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.productsTrustedBadgeText || "TRUSTED BY THOUSANDS OF CREATORS";
+  const titleLine1 = config?.productsTrustedTitleLine1 || "Our templates and";
+  const titleLine2 = config?.productsTrustedTitleLine2 || "resources help creators";
+  const titleLine3 = config?.productsTrustedTitleLine3 || "work faster and achieve";
+  const titleLine4 = config?.productsTrustedTitleLine4 || "better results.";
+
+  const itemsList: TestimonialItem[] =
+    Array.isArray(config?.productsTestimonialsItems) && config.productsTestimonialsItems.length > 0
+      ? config.productsTestimonialsItems
+      : (TESTIMONIALS as unknown as TestimonialItem[]);
 
   useEffect(() => {
     setWindowWidth(window.innerWidth);
@@ -104,9 +129,9 @@ export default function ProductsTestimonials() {
   }, []);
 
   const getMaxIndex = () => {
-    if (windowWidth < 640) return TESTIMONIALS.length - 1;
-    if (windowWidth < 1024) return TESTIMONIALS.length - 2;
-    return TESTIMONIALS.length - 3;
+    if (windowWidth < 640) return Math.max(itemsList.length - 1, 0);
+    if (windowWidth < 1024) return Math.max(itemsList.length - 2, 0);
+    return Math.max(itemsList.length - 3, 0);
   };
 
   const handlePrev = () => {
@@ -225,15 +250,15 @@ export default function ProductsTestimonials() {
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
               <span className="font-heading font-normal text-xs uppercase tracking-widest text-[#F2F5FA] opacity-80">
-                Trusted by Thousands of Creators
+                {badgeText}
               </span>
             </div>
             {/* Title */}
             <h2 className="font-heading font-normal text-xl sm:text-2xl md:text-[36px] lg:text-[44px] text-white leading-[1.2] tracking-wide max-w-[920px]">
-              Our templates and <br className="hidden sm:block" />
-              resources help creators <br className="hidden sm:block" />
-              work faster and achieve <br className="hidden sm:block" />
-              better results.
+              {titleLine1} <br className="hidden sm:block" />
+              {titleLine2} <br className="hidden sm:block" />
+              {titleLine3} <br className="hidden sm:block" />
+              {titleLine4}
             </h2>
           </div>
 
@@ -274,9 +299,9 @@ export default function ProductsTestimonials() {
               gap: `${gap}px`
             }}
           >
-            {TESTIMONIALS.map((item) => (
+            {itemsList.map((item, idx) => (
               <div
-                key={item.id}
+                key={item.id || idx}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 className="testimonial-card-element w-[calc(100vw-40px)] sm:w-[calc((100vw-120px)/2)] lg:w-[calc((100%-48px)/3)] shrink-0 bg-[#020309] border border-white/20 rounded-[24px] p-8 relative overflow-hidden flex flex-col justify-between min-h-[310px] group transition-all duration-300 hover:border-blue-500/40 hover:shadow-[0_15px_35px_rgba(0,128,255,0.15)] cursor-pointer"
@@ -293,13 +318,13 @@ export default function ProductsTestimonials() {
 
                 {/* Quote Text */}
                 <p className="text-[#F2F5FA] opacity-95 text-sm md:text-base leading-relaxed font-satoshi font-light mt-5 relative z-10 flex-grow">
-                  "{item.quote}"
+                  &quot;{item.text || ""}&quot;
                 </p>
 
                 {/* Profile Block (One Line Name & Role with Truncate + Hover Full Name) */}
                 <div className="flex items-center gap-3.5 mt-6 relative z-10 w-full overflow-hidden">
                   <img
-                    src={item.avatar}
+                    src={item.avatar || undefined}
                     className="w-12 h-12 rounded-full object-cover border border-white/20 shrink-0"
                     alt={item.name}
                   />

@@ -24,15 +24,19 @@ import {
   Calendar as CalendarIcon,
   Sun,
   Moon,
+  ChevronDown,
+  ChevronRight,
+  Home,
+  Mail,
+  FileText,
 } from "lucide-react";
 import { AdminThemeProvider, useAdminTheme } from "@/context/admin-theme-context";
 
-const MENU_ITEMS = [
-  { name: "Overview", href: "/admin", icon: LayoutDashboard },
-  { name: "Products", href: "/admin/products", icon: Package },
-  { name: "Course", href: "/admin/course", icon: GraduationCap },
-  { name: "Inbox", href: "/admin/messages", icon: Inbox },
-  { name: "Page Content", href: "/admin/content", icon: Settings },
+const PAGE_SUB_ITEMS = [
+  { name: "Home Page", href: "/admin/content/home", icon: Home },
+  { name: "Products Page", href: "/admin/content/products", icon: Package },
+  { name: "Course Page", href: "/admin/content/course", icon: GraduationCap },
+  { name: "Contact Details", href: "/admin/content/contact", icon: Mail },
 ];
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
@@ -40,6 +44,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { messages: _legacyMessages } = useAppStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pageContentOpen, setPageContentOpen] = useState(
+    pathname.startsWith("/admin/content")
+  );
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const { theme, toggleTheme } = useAdminTheme();
 
@@ -223,27 +230,122 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             }`}>
               Management
             </span>
-            {MENU_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
-                    isActive
-                      ? "bg-[#0080ff] text-white shadow-md font-bold"
-                      : isLight
-                      ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  {item.name}
-                </Link>
-              );
-            })}
+            <Link
+              href="/admin"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
+                pathname === "/admin"
+                  ? "bg-[#0080ff] text-white shadow-md font-bold"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
+              Overview
+            </Link>
+
+            <Link
+              href="/admin/products"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
+                pathname === "/admin/products"
+                  ? "bg-[#0080ff] text-white shadow-md font-bold"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Package className="w-4 h-4 shrink-0" />
+              Products
+            </Link>
+
+            <Link
+              href="/admin/course"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
+                pathname === "/admin/course"
+                  ? "bg-[#0080ff] text-white shadow-md font-bold"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <GraduationCap className="w-4 h-4 shrink-0" />
+              Course
+            </Link>
+
+            <Link
+              href="/admin/messages"
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 ${
+                pathname === "/admin/messages"
+                  ? "bg-[#0080ff] text-white shadow-md font-bold"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Inbox className="w-4 h-4 shrink-0" />
+              <span className="flex-1">Inbox</span>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500 text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Page Content Dropdown Item */}
+            <div className="flex flex-col gap-1 mt-1">
+              <button
+                type="button"
+                onClick={() => setPageContentOpen((prev) => !prev)}
+                className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl font-satoshi text-sm font-semibold transition-all duration-300 w-full text-left ${
+                  pathname.startsWith("/admin/content")
+                    ? "bg-[#0080ff]/15 text-[#0080ff] border border-[#0080ff]/20 font-bold"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <Settings className="w-4 h-4 shrink-0" />
+                  <span>Page Content</span>
+                </div>
+                {pageContentOpen ? (
+                  <ChevronDown className="w-4 h-4 opacity-70" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 opacity-70" />
+                )}
+              </button>
+
+              {/* Sub items */}
+              {pageContentOpen && (
+                <div className="flex flex-col gap-1 pl-4 ml-3 border-l border-white/10 my-1">
+                  {PAGE_SUB_ITEMS.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const isSubActive = pathname === sub.href;
+                    return (
+                      <Link
+                        key={sub.href}
+                        href={sub.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-satoshi text-xs transition-all ${
+                          isSubActive
+                            ? "text-[#0080ff] bg-blue-500/10 font-bold border border-blue-500/20"
+                            : isLight
+                            ? "text-slate-600 hover:text-blue-600 hover:bg-slate-100 font-medium"
+                            : "text-slate-400 hover:text-white hover:bg-white/5 font-medium"
+                        }`}
+                      >
+                        <SubIcon className={`w-3.5 h-3.5 ${isSubActive ? "text-[#0080ff]" : "text-slate-400"}`} />
+                        {sub.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 
@@ -401,7 +503,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* CONTENT CONTAINER */}
-        <div className="flex-1 w-full max-w-6xl mx-auto px-5 py-6 md:px-8 md:py-8 flex flex-col gap-6">
+        <div className="flex-1 w-full px-5 py-6 md:px-8 md:py-8 flex flex-col gap-6">
           {children}
         </div>
       </main>

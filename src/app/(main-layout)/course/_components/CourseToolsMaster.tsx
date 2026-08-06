@@ -5,11 +5,14 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig, CourseToolItem } from "@/types/site-config";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const TOOLS = [
+const DEFAULT_TOOLS = [
   {
     name: "Premier Pro",
     icon: (
@@ -66,6 +69,49 @@ const TOOLS = [
   },
 ];
 
+function renderToolIcon(iconType?: string, iconUrl?: string | null) {
+  if (iconType === "ae") {
+    return (
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#00005b] border border-[#1e1e78] flex items-center justify-center shadow-inner shrink-0">
+        <span className="font-sans font-bold text-2xl md:text-3xl text-[#9999ff] tracking-tight">Ae</span>
+      </div>
+    );
+  }
+  if (iconType === "davinci") {
+    return (
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden flex items-center justify-center shadow-md shrink-0">
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <circle cx="50" cy="50" r="50" fill="#f83b54" />
+          <circle cx="50" cy="36" r="22" fill="#ff7b92" />
+          <circle cx="37" cy="58" r="22" fill="#ff5c77" />
+          <circle cx="63" cy="58" r="22" fill="#ff9ebb" />
+          <circle cx="50" cy="48" r="10" fill="#ffffff" />
+        </svg>
+      </div>
+    );
+  }
+  if (iconType === "ps") {
+    return (
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#001e36] border border-[#00345e] flex items-center justify-center shadow-inner shrink-0">
+        <span className="font-sans font-bold text-2xl md:text-3xl text-[#31a8ff] tracking-tight">Ps</span>
+      </div>
+    );
+  }
+  if (iconType === "custom" && iconUrl) {
+    return (
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center shrink-0">
+        <img src={iconUrl} alt="Tool icon" className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+  // Default "pr"
+  return (
+    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[#00005b] border border-[#1e1e78] flex items-center justify-center shadow-inner shrink-0">
+      <span className="font-sans font-bold text-2xl md:text-3xl text-[#9999ff] tracking-tight">Pr</span>
+    </div>
+  );
+}
+
 function TiltCard3D({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -100,7 +146,27 @@ function TiltCard3D({ children, className = "" }: { children: React.ReactNode; c
   );
 }
 
-export default function CourseToolsMaster() {
+interface CourseToolsMasterProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseToolsMaster({ initialConfig }: CourseToolsMasterProps) {
+  const [config, setConfig] = React.useState<SiteConfig | null>(initialConfig || null);
+
+  React.useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const toolsTitle = config?.courseToolsTitle || "TOOLS YOU'LL MASTER";
+  const toolsList = Array.isArray(config?.courseToolsItems) && config.courseToolsItems.length > 0
+    ? config.courseToolsItems.map((tool) => ({
+        name: tool.name,
+        icon: renderToolIcon(tool.iconType, tool.iconUrl),
+      }))
+    : DEFAULT_TOOLS;
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -134,12 +200,12 @@ export default function CourseToolsMaster() {
 
         {/* Section Label */}
         <h2 className="tools-label font-heading font-normal text-xs sm:text-sm md:text-base text-[#0080ff] tracking-[0.25em] uppercase text-center select-none">
-          TOOLS YOU'LL MASTER
+          {toolsTitle}
         </h2>
 
         {/* Tools Grid Row */}
         <div className="tools-grid-row flex flex-wrap justify-center items-center gap-4 md:gap-5 w-full">
-          {TOOLS.map((tool, i) => (
+          {toolsList.map((tool, i) => (
             <TiltCard3D
               key={i}
               className="tool-card w-36 h-44 sm:w-40 sm:h-48 md:w-44 md:h-52 rounded-[24px] bg-[#060c17] border border-[#14243b] p-5 flex flex-col items-center justify-center gap-4 transition-all duration-300 hover:border-blue-500/40 hover:shadow-[0_12px_35px_rgba(0,100,255,0.18)] group cursor-pointer"

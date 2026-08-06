@@ -8,6 +8,8 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { useAppStore } from "@/context/store";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig, CourseCurriculumModuleItem } from "@/types/site-config";
 
 const PREVIEWS = [
   { label: "01", title: "Introduction & Overview", time: "02:45", locked: false, img: "/nebula-video-poster.png" },
@@ -23,16 +25,46 @@ const PERKS = [
   "Downloadable Resources",
 ];
 
-export default function CourseCurriculum() {
-  const { chapters: CHAPTERS, siteConfig } = useAppStore();
+interface CourseCurriculumProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseCurriculum({ initialConfig }: CourseCurriculumProps) {
+  const { chapters: CHAPTERS, siteConfig: appStoreConfig } = useAppStore();
+  const [config, setConfig] = React.useState<SiteConfig | null>(initialConfig || null);
+
+  React.useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.courseCurriculumBadgeText || "Course Curriculam";
+  const title1 = config?.courseCurriculumTitleLine1 || "What's Inside";
+  const title2 = config?.courseCurriculumTitleLine2 || "The";
+  const title3 = config?.courseCurriculumTitleLine3 || "Course";
+  const subtitle = config?.courseCurriculumSubtitle || "Explore a step-by-step learning path designed to help you master video editing, content strategy, and high-converting video creation through practical lessons and real-world projects.";
+  const ctaDesc = config?.courseCurriculumCtaDesc || "Everything you need to create professional, high-converting videos.";
+  const ctaBtnText = config?.courseCurriculumCtaBtnText || "Enroll Now - $149";
+  const ctaBtnLink = config?.courseCurriculumCtaBtnLink || "/contact";
+
+  const chaptersList: CourseCurriculumModuleItem[] =
+    Array.isArray(config?.courseCurriculumModules) && config.courseCurriculumModules.length > 0
+      ? config.courseCurriculumModules
+      : CHAPTERS;
+
+  const perksList: string[] =
+    Array.isArray(config?.courseCurriculumPerks) && config.courseCurriculumPerks.length > 0
+      ? config.courseCurriculumPerks
+      : PERKS;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeChapter, setActiveChapter] = useState(0);
   const [previewPage, setPreviewPage] = useState(1);
   const totalPreviewPages = 5;
 
-  // Safety fallback if activeChapter is out of bounds due to deletion
-  const safeActiveChapter = activeChapter >= CHAPTERS.length ? 0 : activeChapter;
-  const currentChapter = CHAPTERS[safeActiveChapter] || { title: "Loading...", sub: "" };
+  const safeActiveChapter = activeChapter >= chaptersList.length ? 0 : activeChapter;
+  const currentChapter = chaptersList[safeActiveChapter] || { title: "Loading...", sub: "" };
 
   useGSAP(() => {
     gsap.fromTo(
@@ -65,15 +97,15 @@ export default function CourseCurriculum() {
           <div className="flex items-center gap-2.5">
             <div className="w-2.5 h-2.5 bg-[#0080ff] shrink-0" />
             <span className="font-heading font-normal text-xs md:text-sm text-white tracking-normal">
-              Course Curriculam
+              {badgeText}
             </span>
           </div>
           <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[48px] text-white leading-tight md:leading-[56px] tracking-normal">
-            What's Inside <span className="text-[#0080ff]">The</span><br />
-            <span className="text-[#0080ff]">Course</span>
+            {title1} <span className="text-[#0080ff]">{title2}</span><br />
+            <span className="text-[#0080ff]">{title3}</span>
           </h2>
           <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[640px] text-center">
-            Explore a step-by-step learning path designed to help you master video editing, content strategy, and high-converting video creation through practical lessons and real-world projects.
+            {subtitle}
           </p>
         </div>
 
@@ -82,11 +114,11 @@ export default function CourseCurriculum() {
 
           {/* LEFT: Chapter List */}
           <div className="curriculum-left flex flex-col gap-2.5">
-            {CHAPTERS.map((ch, i) => {
+            {chaptersList.map((ch, i) => {
               const isActive = activeChapter === i;
               return (
                 <button
-                  key={i}
+                  key={ch.id || i}
                   onClick={() => setActiveChapter(i)}
                   className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl border text-left transition-all duration-300 ${
                     isActive
@@ -250,7 +282,7 @@ export default function CourseCurriculum() {
             </div>
             <div className="flex flex-col gap-1">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-                {PERKS.map((perk, i) => (
+                {perksList.map((perk, i) => (
                   <span key={i} className="flex items-center gap-2 font-satoshi font-semibold text-xs sm:text-[13px] md:text-sm text-white">
                     <span className="text-[#3b82f6] text-base leading-none font-bold">•</span>
                     {perk}
@@ -258,17 +290,17 @@ export default function CourseCurriculum() {
                 ))}
               </div>
               <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed">
-                Everything you need to create professional, high-converting videos.
+                {ctaDesc}
               </p>
             </div>
           </div>
 
           {/* Right: Enroll CTA */}
           <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-end">
-            <Link href="/contact" className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
-              Enroll Now - {siteConfig?.coursePrice || "$149"}
+            <Link href={ctaBtnLink} className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
+              {ctaBtnText}
             </Link>
-            <Link href="/contact" className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
+            <Link href={ctaBtnLink} className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
               <ArrowUpRight className="w-5 h-5 text-white" />
             </Link>
           </div>

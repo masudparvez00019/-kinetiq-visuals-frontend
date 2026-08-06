@@ -1,20 +1,23 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAppStore } from "@/context/store";
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig } from "@/types/site-config";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 export default function ContactForm() {
-  const { addMessage, siteConfig } = useAppStore();
+  const { addMessage, siteConfig: appStore } = useAppStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [config, setConfig] = useState<SiteConfig | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -23,6 +26,25 @@ export default function ContactForm() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    siteConfigService.get().then(setConfig).catch(() => {});
+  }, []);
+
+  const formTitle = config?.contactFormTitle || "Fill the Form to Get a Quick Answer";
+  const formSubtitle =
+    config?.contactFormSubtitle ||
+    "Fill out the form and our team will get back to you shortly. You may also find instant answers in the FAQ section.";
+  const faqLinkText = config?.contactFaqLinkText || "Have general Questions? View FAQs";
+  const personPhotoUrl = config?.contactPersonPhotoUrl || "/jowel-avatar.png";
+  const personName = config?.contactPersonName || appStore.mentorName || "Jowel Mahmud";
+  const personTitle = config?.contactPersonTitle || "Mentor | Founder & CEO\nKinetiQ Visuals";
+  const personDesc =
+    config?.contactPersonDesc ||
+    "Fill out the form or reach out by email or phone—we'd love to hear about your project.";
+  const submitBtnText = config?.contactFormBtnText || "Send Message";
+  const contactEmail = config?.contactEmail || appStore.contactEmail || "";
+  const contactPhone = config?.contactPhone || appStore.contactPhone || "";
 
   useGSAP(() => {
     gsap.fromTo(
@@ -53,6 +75,9 @@ export default function ContactForm() {
     setSubmitted(true);
   };
 
+  // Render person title with newlines
+  const titleLines = personTitle.split("\n");
+
   return (
     <section
       ref={containerRef}
@@ -70,8 +95,8 @@ export default function ContactForm() {
             {/* Photo */}
             <div className="w-56 h-56 md:w-64 md:h-64 rounded-2xl overflow-hidden border border-white/10 shadow-xl bg-[#091524] shrink-0">
               <img
-                src="/jowel-avatar.png"
-                alt={siteConfig.mentorName || "Jowel Mahmud"}
+                src={personPhotoUrl}
+                alt={personName}
                 className="w-full h-full object-cover object-top"
               />
             </div>
@@ -79,10 +104,15 @@ export default function ContactForm() {
             {/* Name & Role */}
             <div className="flex flex-col gap-1">
               <h3 className="font-satoshi font-bold text-base md:text-lg text-[#0080ff]">
-                {siteConfig.mentorName || "Jowel Mahmud"}
+                {personName}
               </h3>
               <p className="font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed">
-                Mentor | Founder & CEO<br />KinetiQ Visuals
+                {titleLines.map((line, i) => (
+                  <React.Fragment key={i}>
+                    {line}
+                    {i < titleLines.length - 1 && <br />}
+                  </React.Fragment>
+                ))}
               </p>
             </div>
           </div>
@@ -90,13 +120,17 @@ export default function ContactForm() {
           <div className="flex flex-col gap-6 mt-12">
             {/* Description */}
             <p className="font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed max-w-[340px]">
-              Fill out the form or reach out by email or phone—we'd love to hear about your project.
+              {personDesc}
             </p>
 
             {/* Contact Info Lines */}
             <div className="flex flex-col gap-1.5 font-satoshi text-xs md:text-sm text-slate-300 font-light">
-              <p>Email: <a href={`mailto:${siteConfig.contactEmail}`} className="hover:text-white transition-colors">{siteConfig.contactEmail}</a></p>
-              <p>Phone: <a href={`tel:${siteConfig.contactPhone}`} className="hover:text-white transition-colors">{siteConfig.contactPhone}</a></p>
+              {contactEmail && (
+                <p>Email: <a href={`mailto:${contactEmail}`} className="hover:text-white transition-colors">{contactEmail}</a></p>
+              )}
+              {contactPhone && (
+                <p>Phone: <a href={`tel:${contactPhone}`} className="hover:text-white transition-colors">{contactPhone}</a></p>
+              )}
             </div>
           </div>
 
@@ -108,16 +142,16 @@ export default function ContactForm() {
           {/* Form Header */}
           <div className="flex flex-col gap-3">
             <h2 className="font-heading font-normal text-2xl sm:text-3xl md:text-[34px] text-white leading-tight tracking-normal">
-              Fill the Form to Get a Quick Answer
+              {formTitle}
             </h2>
             <p className="font-satoshi text-xs md:text-sm text-slate-400 font-light leading-relaxed max-w-[540px]">
-              Fill out the form and our team will get back to you shortly. You may also find instant answers in the FAQ section.
+              {formSubtitle}
             </p>
             <Link
               href="#faq"
               className="font-heading font-normal text-xs md:text-sm text-[#0080ff] tracking-normal hover:underline underline-offset-4 transition-all w-fit mt-1"
             >
-              Have general Questions? View FAQs
+              {faqLinkText}
             </Link>
           </div>
 
@@ -195,7 +229,7 @@ export default function ContactForm() {
                     type="submit"
                     className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-10 py-3.5 rounded-full cursor-pointer whitespace-nowrap"
                   >
-                    Send Message
+                    {submitBtnText}
                   </button>
                   <button
                     type="submit"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Play, Pause, Volume2, Settings, Maximize2 } from "lucide-react";
 import gsap from "gsap";
@@ -8,15 +8,18 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAppStore } from "@/context/store";
 
+import { siteConfigService } from "@/services/site-config.service";
+import type { SiteConfig, CourseHeroStatItem } from "@/types/site-config";
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const STATS = [
-  { icon: "play", value: "500+", label: "Premium Lessons" },
-  { icon: "graduation", value: "50K+", label: "Happy Students" },
-  { icon: "clock", value: "120+", label: "Hours of Content" },
-  { icon: "shield", value: "100%", label: "Job-Ready Skills" },
+const STATS: CourseHeroStatItem[] = [
+  { icon: "play", value: "500+", label: "PREMIUM LESSONS" },
+  { icon: "graduation", value: "50K+", label: "HAPPY STUDENTS" },
+  { icon: "clock", value: "120+", label: "HOURS OF CONTENT" },
+  { icon: "shield", value: "100%", label: "JOB-READY SKILLS" },
 ];
 
 const AVATARS = [
@@ -29,7 +32,7 @@ function CounterNumber({ value }: { value: string }) {
   const [displayVal, setDisplayVal] = useState(0);
   const nodeRef = useRef<HTMLSpanElement>(null);
   
-  const match = value.match(/^(\d+)(.*)$/);
+  const match = (value || "").match(/^(\d+)(.*)$/);
   const targetNum = match ? parseInt(match[1], 10) : 0;
   const suffix = match ? match[2] : "";
 
@@ -58,8 +61,37 @@ function CounterNumber({ value }: { value: string }) {
   );
 }
 
-export default function CourseHero() {
+interface CourseHeroProps {
+  initialConfig?: SiteConfig | null;
+}
+
+export default function CourseHero({ initialConfig }: CourseHeroProps) {
   const { siteConfig } = useAppStore();
+  const [config, setConfig] = useState<SiteConfig | null>(initialConfig || null);
+
+  useEffect(() => {
+    if (!initialConfig) {
+      siteConfigService.get().then(setConfig).catch(() => {});
+    }
+  }, [initialConfig]);
+
+  const badgeText = config?.courseHeroBadgeText || "Courses";
+  const title1 = config?.courseHeroTitle1 || "Master";
+  const title2 = config?.courseHeroTitle2 || "Cinematic";
+  const title3 = config?.courseHeroTitle3 || "Video Editing";
+  const description = config?.courseDescription || siteConfig.courseDescription;
+  const ctaText = config?.courseCtaText || `Enroll Now - ${siteConfig.coursePrice}`;
+  const ctaLink = config?.courseCtaLink || "/contact";
+  const studentsText = config?.courseStudentsText || `Loved by ${siteConfig.mentorStud}+ Students`;
+  const ratingText = config?.courseRatingText || "4.9 (200+ Reviews)";
+  const videoUrl = config?.courseVideoUrl || "/video/video.mp4";
+  const posterUrl = config?.coursePosterUrl || undefined;
+
+  const statsList: CourseHeroStatItem[] =
+    Array.isArray(config?.courseHeroStats) && config.courseHeroStats.length > 0
+      ? config.courseHeroStats
+      : STATS;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -200,28 +232,28 @@ export default function CourseHero() {
             <div className="course-hero-label flex items-center gap-2.5">
               <div className="w-3.5 h-3.5 bg-[#5097f5] shrink-0" />
               <span className="font-heading font-normal text-sm md:text-base text-white tracking-normal">
-                Courses
+                {badgeText}
               </span>
             </div>
 
-            {/* Title (Figma Spec: PP Monument Extended 62px, leading 70px, weight 400) */}
+            {/* Title */}
             <h1 className="course-hero-title font-heading font-normal tracking-normal flex flex-col gap-0">
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">Master</span>
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">Cinematic</span>
-              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-[#5097f5] leading-[1.15] lg:leading-[70px]">Video Editing</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">{title1}</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-white leading-[1.15] lg:leading-[70px]">{title2}</span>
+              <span className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] text-[#5097f5] leading-[1.15] lg:leading-[70px]">{title3}</span>
             </h1>
 
             {/* Description */}
             <p className="course-hero-desc font-satoshi text-xs md:text-sm text-slate-300 font-light leading-relaxed max-w-[480px]">
-              {siteConfig.courseDescription}
+              {description}
             </p>
 
-            {/* CTA Actions (Matching Services Gradient Style) */}
+            {/* CTA Actions */}
             <div className="course-hero-actions flex items-center gap-3">
-              <Link href="/contact" className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
-                Enroll Now - {siteConfig.coursePrice}
+              <Link href={ctaLink} className="bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white font-satoshi font-semibold text-sm md:text-base px-9 py-3.5 rounded-full cursor-pointer whitespace-nowrap inline-flex items-center justify-center">
+                {ctaText}
               </Link>
-              <Link href="/contact" className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
+              <Link href={ctaLink} className="w-12 h-12 rounded-full bg-gradient-to-b from-[#032688] to-[#2C82F5] hover:shadow-[0_0_25px_rgba(44,130,245,0.5)] active:scale-95 transition-all duration-300 text-white flex items-center justify-center cursor-pointer shrink-0">
                 <ArrowUpRight className="w-5 h-5" />
               </Link>
             </div>
@@ -243,7 +275,7 @@ export default function CourseHero() {
               {/* Ratings Info */}
               <div className="flex flex-col gap-0.5">
                 <span className="font-satoshi text-xs text-white font-semibold">
-                  Loved by {siteConfig.mentorStud}+ Students
+                  {studentsText}
                 </span>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4].map((s) => (
@@ -251,7 +283,7 @@ export default function CourseHero() {
                       <path d="M8 1l1.8 3.6 4 .6-2.9 2.8.7 4L8 10l-3.6 1.9.7-4L2.2 5.2l4-.6z" />
                     </svg>
                   ))}
-                  <span className="font-satoshi text-[10px] text-slate-400 ml-0.5">4.9 (230+ Reviews)</span>
+                  <span className="font-satoshi text-[10px] text-slate-400 ml-0.5">{ratingText}</span>
                 </div>
               </div>
             </div>
@@ -262,15 +294,15 @@ export default function CourseHero() {
           <div className="course-hero-video w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl relative aspect-video group cursor-pointer" onClick={togglePlay}>
             <video
               ref={videoRef}
+              src={videoUrl || undefined}
+              poster={posterUrl}
               className="w-full h-full object-cover relative z-0"
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
               onEnded={() => setIsPlaying(false)}
               preload="auto"
               playsInline
-            >
-              <source src="/video/video.mp4" type="video/mp4" />
-            </video>
+            />
 
             {/* Play Overlay Button */}
             <div className={`absolute inset-0 bg-black/10 group-hover:bg-black/20 flex items-center justify-center transition-opacity duration-300 z-10 ${isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}>
@@ -279,7 +311,7 @@ export default function CourseHero() {
               </div>
             </div>
 
-            {/* Floating Video Controls Overlay Bar (Matching Screenshot UI) */}
+            {/* Floating Video Controls Overlay Bar */}
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 flex flex-col gap-3 select-none">
               {/* Progress Bar */}
               <div
@@ -315,7 +347,7 @@ export default function CourseHero() {
 
         </div>
 
-        {/* Stats Row (Exact Figma 1 Match: Satoshi Numbers, Thin White Outlined Icons, Shiny Lens Separators) */}
+        {/* Stats Row */}
         <div className="course-stats-row relative w-full bg-[#070d1e]/60 border border-white/15 rounded-[28px] overflow-hidden backdrop-blur-2xl px-6 py-6 md:py-7 shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-10 flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-0">
           {/* Top Specular Edge Line */}
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/35 to-transparent pointer-events-none z-20" />
@@ -323,31 +355,28 @@ export default function CourseHero() {
           {/* Ambient Blue Light Wave Streak */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,102,255,0.2),transparent_70%)] pointer-events-none z-0" />
 
-          {STATS.map((stat, i) => (
-            <React.Fragment key={i}>
+          {statsList.map((stat, i) => (
+            <React.Fragment key={stat.id || i}>
               <div className="flex items-center gap-4 flex-1 justify-center relative z-10">
-                {/* Icon Circle (Translucent Blue Fill, Thin White Outlined Icon) */}
+                {/* Icon Circle */}
                 <div className="w-14 h-14 rounded-full border border-white/20 bg-[#162744]/70 flex items-center justify-center shrink-0 shadow-md">
-                  {stat.icon === "play" && (
-                    <Play className="w-5 h-5 text-white stroke-[1.6] fill-none ml-0.5" />
-                  )}
-                  {stat.icon === "graduation" && (
+                  {stat.icon === "graduation" ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
                       <path d="M22 10v6M2 10l10-5 10 5-10 5z" strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M6 12v5c3.33 1.67 8.67 1.67 12 0v-5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  )}
-                  {stat.icon === "clock" && (
+                  ) : stat.icon === "clock" ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  )}
-                  {stat.icon === "shield" && (
+                  ) : stat.icon === "shield" ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={1.6} className="w-5 h-5">
                       <path d="M12 2l7 4v6c0 4-3.5 7.74-7 9-3.5-1.26-7-5-7-9V6l7-4z" strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
+                  ) : (
+                    <Play className="w-5 h-5 text-white stroke-[1.6] fill-none ml-0.5" />
                   )}
                 </div>
 
@@ -360,8 +389,8 @@ export default function CourseHero() {
                 </div>
               </div>
 
-              {/* Special Tapered Shiny Lens Vertical Separator Line */}
-              {i < STATS.length - 1 && (
+              {/* Separator Line */}
+              {i < statsList.length - 1 && (
                 <div
                   className="hidden lg:block w-[1.5px] h-12 shrink-0 self-center z-10"
                   style={{

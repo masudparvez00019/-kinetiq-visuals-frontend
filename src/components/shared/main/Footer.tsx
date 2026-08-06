@@ -39,6 +39,7 @@ export default function Footer() {
   const titleLine2 = config?.footerTitleLine2 || "Something Worth";
   const titleLine3 = config?.footerTitleLine3 || "Watching";
   const brandText = config?.footerBrandText || "KQ VISUALS";
+  const footerBrandLogoUrl = config?.footerBrandLogoUrl || null;
   const copyrightText =
     config?.footerCopyrightText ||
     `© KQ Visuals All Rights Reserved ${new Date().getFullYear()}`;
@@ -125,6 +126,13 @@ export default function Footer() {
         {/* Right Side: Brand details & Copyright */}
         <div className="flex flex-col md:items-end justify-end h-full fade-up-item select-none text-left md:text-right">
           <div className="flex flex-col md:items-end gap-2">
+            {footerBrandLogoUrl && (
+              <img
+                src={footerBrandLogoUrl}
+                alt={brandText}
+                className="h-10 md:h-14 w-auto object-contain mb-1"
+              />
+            )}
             <span className="font-logo font-normal text-[36px] md:text-[52px] tracking-normal text-white uppercase leading-none">
               {brandText}
             </span>
