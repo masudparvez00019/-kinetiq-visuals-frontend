@@ -2,10 +2,14 @@ import { ReactNode } from "react";
 import Navbar from "@/components/shared/main/Navbar";
 import Footer from "@/components/shared/main/Footer";
 import BackgroundVisuals from "@/components/shared/main/BackgroundVisuals";
+import InitialLoader from "@/components/shared/main/InitialLoader";
 
 const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="relative min-h-screen bg-[#020205] text-white">
+      {/* Brand Initial Loader (Public pages only) */}
+      <InitialLoader />
+
       {/* Background Visuals Layer */}
       <BackgroundVisuals />
 
