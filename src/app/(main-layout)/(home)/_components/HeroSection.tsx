@@ -35,12 +35,16 @@ export default function HeroSection({ initialConfig }: HeroSectionProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    video.play().catch(() => {});
+    const playVideo = () => {
+      video.play().catch(() => {});
+    };
+
+    playVideo();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          video.play().catch(() => {});
+          playVideo();
         } else {
           video.pause();
         }
@@ -56,13 +60,12 @@ export default function HeroSection({ initialConfig }: HeroSectionProps) {
   }, [videoUrl]);
 
   useGSAP(() => {
-    // Split text or animate words/chars
     const tl = gsap.timeline();
 
     tl.fromTo(
       ".hero-video-bg",
-      { scale: 1.1, opacity: 0 },
-      { scale: 1.0, opacity: 1, duration: 1.5, ease: "power2.out" }
+      { scale: 1.08, opacity: 0 },
+      { scale: 1.0, opacity: 1, duration: 1.2, ease: "power2.out" }
     );
 
     // Stagger animation for headings
@@ -156,7 +159,11 @@ export default function HeroSection({ initialConfig }: HeroSectionProps) {
         loop
         muted
         playsInline
+        preload="auto"
         poster={posterUrl}
+        onCanPlay={() => {
+          videoRef.current?.play().catch(() => {});
+        }}
         className="hero-video-bg absolute inset-0 w-full h-full object-cover z-0 opacity-0 pointer-events-none"
       />
 
